@@ -44,10 +44,10 @@ class Settings:
         raw_interval = (
             observer_interval_seconds
             if observer_interval_seconds is not None
-            else float(os.getenv("TELEMETRY_OBSERVER_INTERVAL_SECONDS", "3"))
+            else float(os.getenv("TELEMETRY_OBSERVER_INTERVAL_SECONDS", "60"))
         )
-        if not 2 <= raw_interval <= 5:
-            raise ValueError("observer interval must be between 2 and 5 seconds")
+        if not 5 <= raw_interval <= 300:
+            raise ValueError("observer interval must be between 5 and 300 seconds")
         return cls(
             source_root=resolved_source,
             data_dir=resolved_data,

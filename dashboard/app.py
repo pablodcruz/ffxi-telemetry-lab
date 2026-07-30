@@ -3,6 +3,7 @@ from __future__ import annotations
 import pandas as pd
 import plotly.express as px
 import streamlit as st
+
 from data import load_dashboard_snapshot
 
 INK = "#18212B"
@@ -289,7 +290,7 @@ with progress_tab:
     if selected_velocity.empty:
         st.info(
             "Collecting a trustworthy trend baseline. Two consecutive snapshots in "
-            "the same lease are required, and gaps over five minutes are excluded."
+            "the same lease are required, and gaps over 75 minutes are excluded."
         )
     else:
         velocity_columns = st.columns(2)

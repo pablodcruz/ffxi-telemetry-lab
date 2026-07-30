@@ -1,8 +1,7 @@
 import { TelemetryField } from "./telemetry-field";
 import {
   ProgressionRatePanel,
-  type ProgressionCurrentRow,
-  type ProgressionVelocityRow,
+  type ProgressionSnapshot,
 } from "./progression-rate-panel";
 import publicSnapshot from "../public/data/public_snapshot.json";
 
@@ -45,28 +44,8 @@ const bronzeRows = publicSnapshot.datasets.data_quality.reduce(
   0,
 );
 
-const generatedAt = new Date(publicSnapshot.generated_at);
-const generatedDate = new Intl.DateTimeFormat("en-US", {
-  month: "short",
-  day: "numeric",
-  year: "numeric",
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-  timeZone: "UTC",
-}).format(generatedAt);
-const generatedTime = new Intl.DateTimeFormat("en-US", {
-  hour: "2-digit",
-  minute: "2-digit",
-  hourCycle: "h23",
-  timeZone: "UTC",
-}).format(generatedAt);
-
-const progressionVelocity =
-  publicSnapshot.datasets.progression_velocity as ProgressionVelocityRow[];
-const progressionCurrent =
-  (publicSnapshot.datasets.progression_current[0] as ProgressionCurrentRow | undefined) ??
-  null;
+const initialProgressionSnapshot =
+  publicSnapshot as unknown as ProgressionSnapshot;
 
 function Metric({
   index,
@@ -264,7 +243,7 @@ export default function Home() {
             <i />
             <i />
           </div>
-          <small>Snapshot · {generatedTime} UTC</small>
+          <small>Hourly refresh · :05 ET</small>
         </div>
       </section>
 
@@ -322,10 +301,7 @@ export default function Home() {
             </aside>
           </div>
 
-          <ProgressionRatePanel
-            rows={progressionVelocity}
-            current={progressionCurrent}
-          />
+          <ProgressionRatePanel initialSnapshot={initialProgressionSnapshot} />
 
           <aside className="coverage-callout">
             <span>Coverage note</span>
@@ -523,7 +499,7 @@ export default function Home() {
             <strong>FFXI Telemetry</strong>
             <span>Independent from gameplay by design.</span>
           </div>
-          <p>Aggregate snapshot generated {generatedDate} UTC</p>
+          <p>Reviewed public aggregates refresh hourly.</p>
         </div>
       </footer>
     </main>

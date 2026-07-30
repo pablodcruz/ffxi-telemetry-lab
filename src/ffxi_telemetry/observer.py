@@ -106,10 +106,11 @@ def sample_state(source_root: Path, data_dir: Path) -> Optional[Dict[str, object
 
 
 def observe_forever(source_root: Path, data_dir: Path, interval_seconds: float) -> None:
-    if not 2 <= interval_seconds <= 5:
-        raise ValueError("observer interval must be between 2 and 5 seconds")
+    if not 5 <= interval_seconds <= 300:
+        raise ValueError("observer interval must be between 5 and 300 seconds")
     last_important_state: Optional[tuple[object, ...]] = None
     pending_rows: list[Dict[str, object]] = []
+    rows_per_hour = max(1, round(3600 / interval_seconds))
     sink = ParquetBronzeSink(data_dir)
     try:
         while True:
@@ -119,7 +120,7 @@ def observe_forever(source_root: Path, data_dir: Path, interval_seconds: float) 
                 payload = json.loads(row["raw_json"])
                 important_state = (row.get("lease_id"), payload.get("phase"))
                 state_changed = important_state != last_important_state
-                if state_changed or len(pending_rows) >= 20:
+                if state_changed or len(pending_rows) >= rows_per_hour:
                     sink.write_events(
                         pending_rows,
                         f"observer-{row['event_time'].strftime('%Y%m%dT%H%M%S')}",

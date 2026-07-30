@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { PUBLIC_TELEMETRY_SNAPSHOT_URL } from "./live-config";
 
 export type ProgressionGrain = "hour" | "day" | "week";
 
@@ -10,7 +11,9 @@ export type ProgressionVelocityRow = {
   exp_per_active_hour: number;
   gil_earned: number;
   gil_per_active_hour: number;
+  is_complete: boolean;
   observed_intervals: number;
+  period_end: string;
   period_grain: ProgressionGrain;
   period_start: string;
 };
@@ -25,7 +28,26 @@ export type ProgressionCurrentRow = {
   observed_at: string;
 };
 
+export type ProgressionSnapshot = {
+  generated_at: string;
+  datasets: {
+    progression_current: ProgressionCurrentRow[];
+    progression_velocity: ProgressionVelocityRow[];
+  };
+};
+
 type MetricKey = "exp" | "gil";
+
+const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+const STALE_AFTER_MS = 90 * 60 * 1000;
+const FORBIDDEN_KEYS = new Set([
+  "agent_id",
+  "lease_id",
+  "raw_json",
+  "raw_payload",
+  "stream_key",
+  "bridge_token",
+]);
 
 const grains: Array<{ value: ProgressionGrain; label: string }> = [
   { value: "hour", label: "Hour" },
@@ -33,9 +55,9 @@ const grains: Array<{ value: ProgressionGrain; label: string }> = [
   { value: "week", label: "Week" },
 ];
 
-function number(value: number | null, suffix = "") {
+function number(value: number | null) {
   if (value === null || !Number.isFinite(value)) return "Collecting";
-  return `${Math.round(value).toLocaleString("en-US")}${suffix}`;
+  return Math.round(value).toLocaleString("en-US");
 }
 
 function dateFromSnapshot(value: string) {
@@ -61,6 +83,17 @@ function periodLabel(value: string, grain: ProgressionGrain) {
   })}`;
 }
 
+function relativeAge(value: string, now: number) {
+  const timestamp = dateFromSnapshot(value).getTime();
+  if (!Number.isFinite(timestamp)) return "Update time unavailable";
+  const minutes = Math.max(0, Math.round((now - timestamp) / 60000));
+  if (minutes < 1) return "Updated just now";
+  if (minutes < 60) return `Updated ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  const remainder = minutes % 60;
+  return `Updated ${hours}h${remainder ? ` ${remainder}m` : ""} ago`;
+}
+
 function RateChart({
   rows,
   metric,
@@ -78,7 +111,7 @@ function RateChart({
     <article className={`velocity-chart velocity-${metric}`}>
       <div className="velocity-chart-head">
         <div>
-          <span>{label} velocity</span>
+          <span>{label} velocity · completed periods</span>
           <strong>{label} per active hour</strong>
         </div>
         <i aria-hidden="true" />
@@ -86,7 +119,7 @@ function RateChart({
       <div
         className="velocity-bars"
         role="img"
-        aria-label={`${label} per active hour across ${rows.length} observed periods`}
+        aria-label={`${label} per active hour across ${rows.length} completed periods`}
       >
         {rows.map((row) => {
           const rate = row[rateKey];
@@ -112,18 +145,109 @@ function RateChart({
   );
 }
 
+function isProgressionSnapshot(value: unknown): value is ProgressionSnapshot {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as Partial<ProgressionSnapshot>;
+  return (
+    typeof candidate.generated_at === "string" &&
+    !!candidate.datasets &&
+    Array.isArray(candidate.datasets.progression_current) &&
+    Array.isArray(candidate.datasets.progression_velocity)
+  );
+}
+
+function containsForbiddenKeys(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(containsForbiddenKeys);
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(
+    ([key, nested]) =>
+      FORBIDDEN_KEYS.has(key.toLowerCase()) || containsForbiddenKeys(nested),
+  );
+}
+
+function isSafePublicSnapshot(value: unknown): value is ProgressionSnapshot {
+  if (!isProgressionSnapshot(value)) return false;
+  const snapshot = value as ProgressionSnapshot & {
+    privacy?: Record<string, unknown>;
+  };
+  return (
+    snapshot.privacy?.classification === "public_aggregate" &&
+    snapshot.privacy?.contains_raw_payloads === false &&
+    snapshot.privacy?.contains_agent_ids === false &&
+    snapshot.privacy?.contains_lease_ids === false &&
+    !containsForbiddenKeys(snapshot.datasets)
+  );
+}
+
 export function ProgressionRatePanel({
-  rows,
-  current,
+  initialSnapshot,
 }: {
-  rows: ProgressionVelocityRow[];
-  current: ProgressionCurrentRow | null;
+  initialSnapshot: ProgressionSnapshot;
 }) {
   const [grain, setGrain] = useState<ProgressionGrain>("hour");
+  const [snapshot, setSnapshot] = useState(initialSnapshot);
+  const [refreshState, setRefreshState] = useState<"ready" | "refreshing" | "offline">(
+    "ready",
+  );
+  const [now, setNow] = useState(() =>
+    dateFromSnapshot(initialSnapshot.generated_at).getTime(),
+  );
+
+  const refresh = useCallback(async () => {
+    if (!PUBLIC_TELEMETRY_SNAPSHOT_URL) return;
+    setRefreshState("refreshing");
+    try {
+      const url = new URL(PUBLIC_TELEMETRY_SNAPSHOT_URL);
+      url.searchParams.set("v", String(Math.floor(Date.now() / 300_000)));
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: { accept: "application/json" },
+      });
+      if (!response.ok) throw new Error("telemetry refresh failed");
+      const candidate: unknown = await response.json();
+      if (!isSafePublicSnapshot(candidate)) {
+        throw new Error("telemetry response failed its contract");
+      }
+      setSnapshot(candidate);
+      setRefreshState("ready");
+    } catch {
+      setRefreshState("offline");
+    } finally {
+      setNow(Date.now());
+    }
+  }, []);
+
+  useEffect(() => {
+    const initialRefresh = window.setTimeout(() => void refresh(), 0);
+    const refreshTimer = window.setInterval(refresh, REFRESH_INTERVAL_MS);
+    const ageTimer = window.setInterval(() => setNow(Date.now()), 60_000);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
+    return () => {
+      window.clearTimeout(initialRefresh);
+      window.clearInterval(refreshTimer);
+      window.clearInterval(ageTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
+    };
+  }, [refresh]);
+
+  const rows = snapshot.datasets.progression_velocity;
   const selected = useMemo(
     () => rows.filter((row) => row.period_grain === grain),
     [grain, rows],
   );
+  const completed = selected.filter((row) => row.is_complete === true);
+  const currentPeriod =
+    selected.filter((row) => !row.is_complete).at(-1) ?? null;
+  const latestObservation =
+    snapshot.datasets.progression_current[0]?.observed_at ?? snapshot.generated_at;
+  const ageMilliseconds = now - dateFromSnapshot(latestObservation).getTime();
+  const stale = Number.isFinite(ageMilliseconds) && ageMilliseconds > STALE_AFTER_MS;
+  const periodName = grain === "hour" ? "hour" : grain === "day" ? "day" : "week";
 
   return (
     <section className="velocity-panel" aria-labelledby="velocity-title">
@@ -132,8 +256,8 @@ export function ProgressionRatePanel({
           <span className="kicker">Progression velocity</span>
           <h3 id="velocity-title">EXP and gil, normalized by active time.</h3>
           <p>
-            Totals show what the agent earned. Rates divide those totals by
-            observed active supervisor time—hourly rates are never summed.
+            The current period stays separate from completed comparisons.
+            Public aggregates refresh hourly without rebuilding this site.
           </p>
         </div>
         <div className="grain-control" aria-label="Progression time grain">
@@ -150,41 +274,61 @@ export function ProgressionRatePanel({
         </div>
       </div>
 
+      <div
+        className={`velocity-freshness ${stale ? "is-stale" : ""}`}
+        role="status"
+      >
+        <i aria-hidden="true" />
+        <strong>{relativeAge(latestObservation, now)}</strong>
+        <span>
+          {stale
+            ? "The local feed is stale; the last verified values remain visible."
+            : refreshState === "offline"
+              ? "Live endpoint unavailable; showing the last verified snapshot."
+              : refreshState === "refreshing"
+                ? "Checking for a newer hourly snapshot…"
+                : "Hourly public feed verified."}
+        </span>
+      </div>
+
       <div className="velocity-kpis">
         <div>
-          <span>Current lease EXP/hour</span>
-          <strong>{number(current?.lease_exp_per_active_hour ?? null)}</strong>
-          <small>{number(current?.lease_exp_earned ?? null)} EXP observed</small>
+          <span>Current {periodName} EXP/hour</span>
+          <strong>{number(currentPeriod?.exp_per_active_hour ?? null)}</strong>
+          <small>{number(currentPeriod?.exp_earned ?? null)} EXP so far</small>
         </div>
         <div>
-          <span>Current lease gil/hour</span>
-          <strong>{number(current?.lease_gil_per_active_hour ?? null)}</strong>
-          <small>{number(current?.lease_gil_earned ?? null)} gil observed</small>
+          <span>Current {periodName} gil/hour</span>
+          <strong>{number(currentPeriod?.gil_per_active_hour ?? null)}</strong>
+          <small>{number(currentPeriod?.gil_earned ?? null)} gil so far</small>
         </div>
         <div>
-          <span>Trend coverage</span>
+          <span>Current {periodName} coverage</span>
           <strong>
-            {selected.length
-              ? `${Math.round(
-                  selected.reduce((sum, row) => sum + row.active_seconds, 0) / 60,
-                )}m`
+            {currentPeriod
+              ? `${Math.round(currentPeriod.active_seconds / 60)}m`
               : "Collecting"}
           </strong>
-          <small>active elapsed time in this view</small>
+          <small>observed active elapsed time</small>
+        </div>
+        <div>
+          <span>Completed {periodName}s</span>
+          <strong>{completed.length.toLocaleString("en-US")}</strong>
+          <small>stable comparison buckets</small>
         </div>
       </div>
 
-      {selected.length ? (
+      {completed.length ? (
         <div className="velocity-grid">
-          <RateChart rows={selected} metric="exp" />
-          <RateChart rows={selected} metric="gil" />
+          <RateChart rows={completed} metric="exp" />
+          <RateChart rows={completed} metric="gil" />
         </div>
       ) : (
         <div className="velocity-empty">
-          <strong>Collecting a trustworthy baseline.</strong>
+          <strong>Collecting the first completed {periodName}.</strong>
           <span>
-            This grain appears after consecutive snapshots exist in the same
-            lease. Gaps over five minutes and counter resets are excluded.
+            Current progress remains visible above. Completed periods appear
+            after the hourly publisher closes their boundary.
           </span>
         </div>
       )}
@@ -193,8 +337,8 @@ export function ProgressionRatePanel({
         <span>Method</span>
         <p>
           Weighted rate = summed counter delta ÷ summed active elapsed-time
-          delta × 3,600. Minute grain is intentionally omitted from the public
-          view because short combat bursts make it unstable.
+          delta × 3,600. Counter resets, non-positive active time, and observer
+          gaps over 75 minutes are excluded.
         </p>
       </div>
     </section>

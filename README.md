@@ -35,19 +35,18 @@ boundary, then reconciled exactly:
 
 | Source | Valid rows | Malformed |
 | --- | ---: | ---: |
-| MCP action audit | 47,094 | 0 |
-| Farm supervisor events | 29,858 | 0 |
+| MCP action audit | 52,575 | 0 |
+| Farm supervisor events | 33,042 | 0 |
 | Navigation probes | 138 | 0 |
-| **Static total** | **77,090** | **0** |
+| **Static total** | **85,755** | **0** |
 
-One later state-observer row was added separately, for 77,091 Bronze rows in the
-validated warehouse. All 145 frozen file prefixes retained their original
-hashes; two active logs appended after the boundary as expected. The collector
-did not alter source bytes.
+All 157 frozen file prefixes reconciled to the valid records present at the
+start of the run. Active logs appended after that boundary as expected; the
+collector did not alter source bytes.
 
 The gameplay source was observed on branch
 `codex/unified-farm-supervisor` at
-`3333af7f924f5bbb387953a6ef45de910787d493`. Historical event-to-commit
+`650ae7c9c37aaceec773db0fada442e70e4219ef`. Historical event-to-commit
 attribution is explicitly labeled `inferred_from_commit_time`; future sessions
 record the source HEAD as `observed_at_ingestion`.
 
@@ -156,10 +155,10 @@ The static public dashboard source lives in `site/`. Its tracked site snapshot
 is the same reviewed, aggregate-only export used by the local dashboard. Inspect
 the generated snapshot and rerun the validation suite before publishing.
 
-## Low-frequency state observer
+## Continuous hourly public metrics
 
-The observer samples only `runtime/farm-supervisor/primary.json`, every 2–5
-seconds and on important changes:
+The optional observer samples only `runtime/farm-supervisor/primary.json` and
+immediately records lease or phase changes it sees:
 
 ```bash
 ffxi-telemetry observe
@@ -170,6 +169,33 @@ files, restarts, and an offline source project. Snapshots include observation
 time, lease, phase, zone, current target, counters, metrics, configuration hash,
 and the source HEAD observed at ingestion. It writes only inside this project
 and never polls gameplay MCP.
+
+The live installation runs the independent publisher at five minutes past each
+hour:
+
+```bash
+ffxi-telemetry refresh-public
+```
+
+That command incrementally collects the allowlisted append-only files, samples
+current state, refreshes DuckDB, runs the tested dbt models, exports the reviewed
+aggregate contract, and overwrites one public Vercel Blob JSON object. Raw
+telemetry never leaves the local machine. A publishing failure cannot stop the
+observer or gameplay.
+
+After creating a public Blob store for the linked Vercel project, pull its
+ignored environment values into `.env.vercel`. Schedule `refresh-public` with a
+local task runner that can read the configured source root. The current
+installation uses an active Codex hourly automation; this avoids macOS denying
+an unattended LaunchAgent access to a source under `Documents`.
+
+Each hourly refresh takes one state sample, which is sufficient for hour-over-
+hour EXP and gil counter deltas while keeping local work small. The public
+dashboard checks the reviewed aggregate object every ten minutes
+and whenever its tab regains focus. Hour charts show completed buckets only;
+the current partial period and data age are labeled separately. Full local
+history is retained indefinitely. The public extract keeps the latest 90 days
+of hourly buckets plus durable daily and weekly rollups.
 
 ## Read-only MariaDB snapshots
 

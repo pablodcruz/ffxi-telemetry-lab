@@ -61,20 +61,48 @@ PUBLIC_QUERIES = {
             exp_earned_delta,
             gil_earned_delta
           from valid_intervals
+        ),
+        aggregated as (
+          select
+            period_grain,
+            period_start,
+            sum(active_seconds)::bigint active_seconds,
+            sum(exp_earned_delta)::bigint exp_earned,
+            sum(gil_earned_delta)::bigint gil_earned,
+            sum(exp_earned_delta) * 3600.0 / nullif(sum(active_seconds), 0)
+              exp_per_active_hour,
+            sum(gil_earned_delta) * 3600.0 / nullif(sum(active_seconds), 0)
+              gil_per_active_hour,
+            count(*)::bigint observed_intervals
+          from bucketed
+          group by period_grain, period_start
         )
         select
           period_grain,
           cast(period_start as varchar) period_start,
-          sum(active_seconds)::bigint active_seconds,
-          sum(exp_earned_delta)::bigint exp_earned,
-          sum(gil_earned_delta)::bigint gil_earned,
-          sum(exp_earned_delta) * 3600.0 / nullif(sum(active_seconds), 0)
-            exp_per_active_hour,
-          sum(gil_earned_delta) * 3600.0 / nullif(sum(active_seconds), 0)
-            gil_per_active_hour,
-          count(*)::bigint observed_intervals
-        from bucketed
-        group by period_grain, period_start
+          cast(
+            case period_grain
+              when 'hour' then period_start + interval 1 hour
+              when 'day' then period_start + interval 1 day
+              else period_start + interval 7 day
+            end
+            as varchar
+          ) period_end,
+          case period_grain
+            when 'hour' then period_start + interval 1 hour <= current_timestamp
+            when 'day' then period_start + interval 1 day <= current_timestamp
+            else period_start + interval 7 day <= current_timestamp
+          end is_complete,
+          active_seconds,
+          exp_earned,
+          gil_earned,
+          exp_per_active_hour,
+          gil_per_active_hour,
+          observed_intervals
+        from aggregated
+        where
+          period_grain <> 'hour'
+          or period_start >= current_timestamp - interval 90 day
         order by
           case period_grain when 'hour' then 1 when 'day' then 2 else 3 end,
           period_start
@@ -239,7 +267,7 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
             "progression_velocity": (
                 "Per-active-hour rates divide summed counter deltas by summed supervisor "
                 "elapsed-time deltas. Rates are never summed. Intervals with counter resets, "
-                "non-positive active time, or observation gaps over five minutes are excluded."
+                "non-positive active time, or observation gaps over 75 minutes are excluded."
             ),
             "deaths_recoveries": "Available only for state-observer-covered periods.",
             "job": "Unavailable in the current event and state contracts.",

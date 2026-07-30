@@ -45,7 +45,7 @@ assessed as (
                 then 'baseline_only'
             when observation_gap_seconds <= 0
                 then 'invalid_interval'
-            when observation_gap_seconds > 300
+            when observation_gap_seconds > 4500
                 then 'observation_gap'
             when active_seconds_raw < 0
                 or exp_earned_delta_raw < 0

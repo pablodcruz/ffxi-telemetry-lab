@@ -1024,7 +1024,7 @@ h3 {
 
 .velocity-kpis {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   margin-top: 28px;
   border: 1px solid var(--line);
   border-radius: 8px;
@@ -1044,6 +1044,51 @@ h3 {
 .velocity-kpis span,
 .velocity-kpis small {
   display: block;
+}
+
+.velocity-freshness {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  padding: 10px 13px;
+  color: #bfc5ae;
+  border: 1px solid rgba(200, 255, 61, 0.16);
+  border-radius: 7px;
+  background: rgba(200, 255, 61, 0.045);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+}
+
+.velocity-freshness i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--acid);
+  box-shadow: 0 0 14px rgba(200, 255, 61, 0.65);
+}
+
+.velocity-freshness strong {
+  color: var(--acid);
+  font-weight: 500;
+}
+
+.velocity-freshness span {
+  color: var(--muted);
+}
+
+.velocity-freshness.is-stale {
+  border-color: rgba(255, 105, 86, 0.28);
+  background: rgba(255, 105, 86, 0.055);
+}
+
+.velocity-freshness.is-stale i {
+  background: var(--coral);
+  box-shadow: 0 0 14px rgba(255, 105, 86, 0.55);
+}
+
+.velocity-freshness.is-stale strong {
+  color: var(--coral);
 }
 
 .velocity-kpis span {

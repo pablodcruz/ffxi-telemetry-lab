@@ -4,7 +4,9 @@ import json
 import subprocess
 from pathlib import Path
 
-from ffxi_telemetry.observer import sample_state
+import pytest
+
+from ffxi_telemetry.observer import observe_forever, sample_state
 
 
 def test_observer_tolerates_missing_and_samples_state(tmp_path: Path):
@@ -35,3 +37,10 @@ def test_observer_tolerates_missing_and_samples_state(tmp_path: Path):
     assert result is not None
     assert result["written_rows"] == 1
     assert list((data_dir / "bronze/source=state_snapshot").rglob("*.parquet"))
+
+
+def test_observer_rejects_overly_frequent_or_sparse_intervals(tmp_path: Path):
+    with pytest.raises(ValueError):
+        observe_forever(tmp_path, tmp_path / "data", 1)
+    with pytest.raises(ValueError):
+        observe_forever(tmp_path, tmp_path / "data", 301)

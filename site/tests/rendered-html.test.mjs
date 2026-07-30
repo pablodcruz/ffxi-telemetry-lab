@@ -4,13 +4,13 @@ import test from "node:test";
 
 const siteRoot = new URL("../", import.meta.url);
 
-async function render() {
+async function render(pathname = "/") {
   const workerUrl = new URL("../dist/server/index.js", import.meta.url);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
 
   return worker.fetch(
-    new Request("http://localhost/", {
+    new Request(`http://localhost${pathname}`, {
       headers: { accept: "text/html" },
     }),
     {
@@ -37,7 +37,11 @@ test("server-renders the public telemetry dashboard", async () => {
   assert.match(html, /1,245/);
   assert.match(html, /47,094/);
   assert.match(html, /EXP and gil, normalized by active time/);
-  assert.match(html, /Current lease EXP\/hour/);
+  assert.match(html, /Current (?:<!-- -->)?hour(?:<!-- -->)? EXP\/hour/);
+  assert.match(
+    html,
+    /Completed (?:<!-- -->)?hour(?:<!-- -->)?s/,
+  );
   assert.match(html, /No raw payloads, agent IDs, lease IDs/);
   assert.match(html, /og:image/);
   assert.match(html, /\/og-v2\.png/);
@@ -46,10 +50,11 @@ test("server-renders the public telemetry dashboard", async () => {
 });
 
 test("source contains only the finished dashboard experience", async () => {
-  const [layout, page, css, packageJson, hostingJson] = await Promise.all([
+  const [layout, page, css, liveConfig, packageJson, hostingJson] = await Promise.all([
     readFile(new URL("app/layout.tsx", siteRoot), "utf8"),
     readFile(new URL("app/page.tsx", siteRoot), "utf8"),
     readFile(new URL("app/globals.css", siteRoot), "utf8"),
+    readFile(new URL("app/live-config.ts", siteRoot), "utf8"),
     readFile(new URL("package.json", siteRoot), "utf8"),
     readFile(new URL(".openai/hosting.json", siteRoot), "utf8"),
   ]);
@@ -58,9 +63,12 @@ test("source contains only the finished dashboard experience", async () => {
   assert.match(layout, /\/og-v2\.png/);
   assert.match(page, /const qualityRows/);
   assert.match(page, /ProgressionRatePanel/);
+  assert.match(page, /Hourly refresh/);
+  assert.match(page, /initialProgressionSnapshot/);
   assert.match(page, /No raw payloads, agent IDs, lease IDs/);
   assert.match(page, /Historical Git attribution is inferred/);
   assert.match(css, /--ink:/);
+  assert.match(liveConfig, /https:\/\/.*\.public\.blob\.vercel-storage\.com/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   assert.match(
     hostingJson,

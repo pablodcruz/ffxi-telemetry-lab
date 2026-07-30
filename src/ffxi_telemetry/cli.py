@@ -2,13 +2,16 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
+from pathlib import Path
 from typing import Optional, Sequence
 
 from dotenv import load_dotenv
 
 from .collector import collect
 from .config import Settings
+from .hourly_refresh import refresh_public_metrics
 from .mariadb_snapshot import TABLE_CATALOG, snapshot_tables
 from .observer import observe_forever, sample_state
 from .public_export import export_public_snapshot
@@ -70,11 +73,30 @@ def build_parser() -> argparse.ArgumentParser:
         "--site-output",
         help="Optional mirrored public aggregate snapshot for the static site",
     )
+
+    refresh = subparsers.add_parser(
+        "refresh-public",
+        help="Collect, rebuild Gold, export, and publish one reviewed public snapshot",
+    )
+    _common_source_argument(refresh)
+    refresh.add_argument("--data-dir")
+    refresh.add_argument("--duckdb-path")
+    refresh.add_argument("--output", default="data/public/latest.json")
+    refresh.add_argument(
+        "--blob-pathname",
+        default=os.getenv("TELEMETRY_BLOB_PATHNAME", "telemetry/latest.json"),
+    )
+    refresh.add_argument(
+        "--no-upload",
+        action="store_true",
+        help="Build the public snapshot locally without uploading it",
+    )
     return parser
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     load_dotenv()
+    load_dotenv(".env.vercel", override=False)
     args = build_parser().parse_args(argv)
     try:
         settings = Settings.from_env(
@@ -120,6 +142,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 settings.duckdb_path,
                 args.output,
                 args.site_output,
+            )
+        elif args.command == "refresh-public":
+            result = refresh_public_metrics(
+                settings.require_source_root(),
+                settings.data_dir,
+                settings.duckdb_path,
+                Path(args.output).expanduser().resolve(),
+                upload=not args.no_upload,
+                blob_pathname=args.blob_pathname,
             )
         else:
             raise ValueError(f"unknown command: {args.command}")

@@ -46,4 +46,6 @@ from their aggregate numerator and denominator. The same buckets also expose
 the period total. Minute grain is intentionally local-only because short combat
 bursts make it too volatile for the public progression view. Intervals are
 excluded when counters reset, active time is non-positive, or the observer gap
-exceeds five minutes. Visible dates use America/New_York boundaries.
+exceeds 75 minutes. The threshold admits the scheduled hourly sample with
+reasonable scheduling jitter while excluding missed runs. Visible dates use
+America/New_York boundaries.
