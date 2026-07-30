@@ -31,13 +31,13 @@ export async function generateMetadata(): Promise<Metadata> {
     openGraph: {
       title: "FFXI Telemetry — Autonomy, measured",
       description,
-      images: [{ url: "/og.png", width: 1200, height: 630 }],
+      images: [{ url: "/og-v2.png", width: 1200, height: 630 }],
     },
     twitter: {
       card: "summary_large_image",
       title: "FFXI Telemetry — Autonomy, measured",
       description,
-      images: ["/og.png"],
+      images: ["/og-v2.png"],
     },
   };
 }
