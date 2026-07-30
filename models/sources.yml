@@ -1,0 +1,13 @@
+version: 2
+
+sources:
+  - name: bronze
+    schema: main
+    description: Local-only immutable Bronze Parquet and collector reconciliation metadata.
+    tables:
+      - name: bronze_events
+        description: Every valid allowlisted source record with its complete raw JSON payload.
+      - name: ingestion_sessions
+        description: One row per collector session.
+      - name: ingestion_source_reconciliation
+        description: Source-level reconciliation counts for every collector session.

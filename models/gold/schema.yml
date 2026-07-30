@@ -1,0 +1,43 @@
+version: 2
+
+models:
+  - name: gold_autonomous_progression
+    description: Daily progression by lease, zone, and Git attribution with metric coverage labels.
+    columns:
+      - name: event_date
+        tests: [not_null]
+      - name: exp_metric_quality
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["state_observer_counter", "unavailable"]
+                quote: true
+
+  - name: gold_combat_reliability
+    description: Daily combat outcomes, reliability, latency, actions, and observer-only safety counters.
+    columns:
+      - name: event_date
+        tests: [not_null]
+
+  - name: gold_navigation_performance
+    description: Navigation probes and supervisor navigation behavior by day, lease, zone, and Git attribution.
+    columns:
+      - name: event_date
+        tests: [not_null]
+
+  - name: gold_mcp_operation_reliability
+    description: MCP operation outcome and latency metrics.
+    columns:
+      - name: event_date
+        tests: [not_null]
+      - name: operation
+        tests: [not_null]
+
+  - name: gold_performance_by_git_commit
+    description: Cross-domain performance summarized by inferred or observed source Git SHA.
+
+  - name: gold_data_quality
+    description: Dashboard-facing uniqueness, completeness, freshness, quarantine, and reconciliation checks.
+    columns:
+      - name: source
+        tests: [unique, not_null]

@@ -1,0 +1,62 @@
+version: 2
+
+models:
+  - name: silver_agent_actions
+    description: Typed MCP action audit events at one row per Bronze event.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: event_time
+        tests: [not_null]
+      - name: outcome
+        tests:
+          - accepted_values:
+              arguments:
+                values: ["ok", "error"]
+                quote: true
+
+  - name: silver_supervisor_events
+    description: Typed farm supervisor events with the complete raw JSON retained locally.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: event_time
+        tests: [not_null]
+      - name: lease_id
+        tests:
+          - relationships:
+              arguments:
+                to: ref('silver_leases')
+                field: lease_id
+              config:
+                where: "lease_id is not null"
+
+  - name: silver_leases
+    description: One row per observed supervisor lease.
+    columns:
+      - name: lease_id
+        tests: [unique, not_null]
+
+  - name: silver_fights
+    description: One row per completed fight event.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: event_time
+        tests: [not_null]
+
+  - name: silver_navigation_attempts
+    description: One row per collision/navigation probe.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: event_time
+        tests: [not_null]
+
+  - name: silver_state_snapshots
+    description: Low-frequency read-only supervisor state observations.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: observed_at
+        tests: [not_null]

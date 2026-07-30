@@ -1,0 +1,7 @@
+ffxi_telemetry:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('TELEMETRY_DUCKDB_PATH', 'data/warehouse/telemetry.duckdb') }}"
+      threads: 4

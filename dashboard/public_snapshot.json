@@ -1,0 +1,661 @@
+{
+  "coverage": {
+    "earliest_event_time": "2026-07-25 17:41:07.588-04",
+    "latest_event_time": "2026-07-30 12:18:09.006675-04"
+  },
+  "datasets": {
+    "combat_daily": [
+      {
+        "aggro_response_max_ms": 27346.0,
+        "aggro_response_p95_ms": 27346.0,
+        "attack_issued": 134,
+        "attack_rejection_rate": 0.3020833333333333,
+        "attack_rejections": 58,
+        "combat_spells": 0,
+        "completed_fights": 68,
+        "death_recovery_metric_quality": "unavailable",
+        "deaths": null,
+        "event_date": "2026-07-28",
+        "handoff_queue_max_ms": 25714.0,
+        "handoff_queue_p95_ms": 19276.0,
+        "job_abilities": 0,
+        "proactive_engagements": 100,
+        "reactive_engagements": 34,
+        "recoveries": null,
+        "target_cycle_errors": 19,
+        "weapon_skills": 37
+      },
+      {
+        "aggro_response_max_ms": 618.0,
+        "aggro_response_p95_ms": 618.0,
+        "attack_issued": 1022,
+        "attack_rejection_rate": 0.22634367903103708,
+        "attack_rejections": 299,
+        "combat_spells": 0,
+        "completed_fights": 707,
+        "death_recovery_metric_quality": "unavailable",
+        "deaths": null,
+        "event_date": "2026-07-29",
+        "handoff_queue_max_ms": 743641.0,
+        "handoff_queue_p95_ms": 437445.5999999999,
+        "job_abilities": 364,
+        "proactive_engagements": 876,
+        "reactive_engagements": 146,
+        "recoveries": null,
+        "target_cycle_errors": 41,
+        "weapon_skills": 311
+      },
+      {
+        "aggro_response_max_ms": null,
+        "aggro_response_p95_ms": null,
+        "attack_issued": 665,
+        "attack_rejection_rate": 0.21672555948174324,
+        "attack_rejections": 184,
+        "combat_spells": 153,
+        "completed_fights": 470,
+        "death_recovery_metric_quality": "state_observer_counter",
+        "deaths": 0,
+        "event_date": "2026-07-30",
+        "handoff_queue_max_ms": 572083.0,
+        "handoff_queue_p95_ms": 472097.0,
+        "job_abilities": 0,
+        "proactive_engagements": 533,
+        "reactive_engagements": 132,
+        "recoveries": 6,
+        "target_cycle_errors": 8,
+        "weapon_skills": 172
+      }
+    ],
+    "commit_performance": [
+      {
+        "attack_rejection_rate": 0.40350877192982454,
+        "completed_fights": 6,
+        "first_event_date": "2026-07-28",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-28",
+        "mcp_failure_rate": 0.10060975609756098,
+        "mcp_operations": 656,
+        "navigation_failures": 2,
+        "source_git_sha": "06125e3f",
+        "supervisor_errors": 2
+      },
+      {
+        "attack_rejection_rate": 0.3333333333333333,
+        "completed_fights": 8,
+        "first_event_date": "2026-07-28",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-28",
+        "mcp_failure_rate": 0.034,
+        "mcp_operations": 500,
+        "navigation_failures": 1,
+        "source_git_sha": "7a8994d8",
+        "supervisor_errors": 1
+      },
+      {
+        "attack_rejection_rate": 0.25,
+        "completed_fights": 8,
+        "first_event_date": "2026-07-28",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-28",
+        "mcp_failure_rate": 0.06415094339622641,
+        "mcp_operations": 265,
+        "navigation_failures": 0,
+        "source_git_sha": "85ef6f28",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.1111111111111111,
+        "completed_fights": 21,
+        "first_event_date": "2026-07-28",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-28",
+        "mcp_failure_rate": 0.03961352657004831,
+        "mcp_operations": 1035,
+        "navigation_failures": 0,
+        "source_git_sha": "9f629e64",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.32,
+        "completed_fights": 16,
+        "first_event_date": "2026-07-28",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-28",
+        "mcp_failure_rate": 0.025048169556840076,
+        "mcp_operations": 519,
+        "navigation_failures": 0,
+        "source_git_sha": "bebe0946",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.16666666666666666,
+        "completed_fights": 15,
+        "first_event_date": "2026-07-28",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.017985611510791366,
+        "mcp_operations": 2224,
+        "navigation_failures": 2,
+        "source_git_sha": "eed7fcc3",
+        "supervisor_errors": 2
+      },
+      {
+        "attack_rejection_rate": 0.22950819672131148,
+        "completed_fights": 65,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.008290155440414507,
+        "mcp_operations": 1930,
+        "navigation_failures": 1,
+        "source_git_sha": "19cad084",
+        "supervisor_errors": 1
+      },
+      {
+        "attack_rejection_rate": 0.2602739726027397,
+        "completed_fights": 36,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.03336921420882669,
+        "mcp_operations": 929,
+        "navigation_failures": 0,
+        "source_git_sha": "1f00ad03",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.23076923076923078,
+        "completed_fights": 13,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.07095343680709534,
+        "mcp_operations": 451,
+        "navigation_failures": 0,
+        "source_git_sha": "462d15c1",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.19623655913978494,
+        "completed_fights": 217,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.0053107789142407555,
+        "mcp_operations": 5084,
+        "navigation_failures": 3,
+        "source_git_sha": "59596ece",
+        "supervisor_errors": 3
+      },
+      {
+        "attack_rejection_rate": 0.27953890489913547,
+        "completed_fights": 148,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.007933104631217838,
+        "mcp_operations": 4664,
+        "navigation_failures": 0,
+        "source_git_sha": "69a639cd",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.20666666666666667,
+        "completed_fights": 87,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-30",
+        "mcp_failure_rate": 0.0015078407720144752,
+        "mcp_operations": 3316,
+        "navigation_failures": 0,
+        "source_git_sha": "6be64da0",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.07407407407407407,
+        "completed_fights": 22,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.039792387543252594,
+        "mcp_operations": 578,
+        "navigation_failures": 1,
+        "source_git_sha": "6f8d6272",
+        "supervisor_errors": 1
+      },
+      {
+        "attack_rejection_rate": 0.20512820512820512,
+        "completed_fights": 24,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.009727626459143969,
+        "mcp_operations": 514,
+        "navigation_failures": 0,
+        "source_git_sha": "9ac69600",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.22085889570552147,
+        "completed_fights": 91,
+        "first_event_date": "2026-07-29",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-29",
+        "mcp_failure_rate": 0.00585335797905114,
+        "mcp_operations": 3246,
+        "navigation_failures": 1,
+        "source_git_sha": "b9a0c58e",
+        "supervisor_errors": 1
+      },
+      {
+        "attack_rejection_rate": 0.08928571428571429,
+        "completed_fights": 46,
+        "first_event_date": "2026-07-30",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-30",
+        "mcp_failure_rate": 0.0008802816901408451,
+        "mcp_operations": 1136,
+        "navigation_failures": 0,
+        "source_git_sha": "3333af7f",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.21714285714285714,
+        "completed_fights": 195,
+        "first_event_date": "2026-07-30",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-30",
+        "mcp_failure_rate": 0.0017327685791297652,
+        "mcp_operations": 5194,
+        "navigation_failures": 1,
+        "source_git_sha": "8414b3ed",
+        "supervisor_errors": 1
+      },
+      {
+        "attack_rejection_rate": 0.2,
+        "completed_fights": 12,
+        "first_event_date": "2026-07-30",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-30",
+        "mcp_failure_rate": 0.025252525252525252,
+        "mcp_operations": 396,
+        "navigation_failures": 1,
+        "source_git_sha": "ae2e5211",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.0967741935483871,
+        "completed_fights": 23,
+        "first_event_date": "2026-07-30",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-30",
+        "mcp_failure_rate": 0.020512820512820513,
+        "mcp_operations": 780,
+        "navigation_failures": 7,
+        "source_git_sha": "b08a94d4",
+        "supervisor_errors": 1
+      },
+      {
+        "attack_rejection_rate": 0.15384615384615385,
+        "completed_fights": 9,
+        "first_event_date": "2026-07-30",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-30",
+        "mcp_failure_rate": 0.021505376344086023,
+        "mcp_operations": 279,
+        "navigation_failures": 5,
+        "source_git_sha": "e8c1f2b0",
+        "supervisor_errors": 0
+      },
+      {
+        "attack_rejection_rate": 0.248,
+        "completed_fights": 183,
+        "first_event_date": "2026-07-30",
+        "git_sha_provenance": "inferred_from_commit_time",
+        "last_event_date": "2026-07-30",
+        "mcp_failure_rate": 0.0017364879531148252,
+        "mcp_operations": 4607,
+        "navigation_failures": 0,
+        "source_git_sha": "fcc940c9",
+        "supervisor_errors": 0
+      }
+    ],
+    "data_quality": [
+      {
+        "bronze_rows": 47094,
+        "distinct_event_ids": 47094,
+        "duplicate_event_ids": 0,
+        "earliest_event_time": "2026-07-25 17:41:07.588-04",
+        "latest_event_time": "2026-07-30 12:12:54.337-04",
+        "latest_ingested_at": "2026-07-30 12:12:54.512191-04",
+        "latest_session_malformed_rows": 0,
+        "latest_session_reconciled": true,
+        "latest_session_valid_rows": 47094,
+        "null_event_ids": 0,
+        "null_event_times": 0,
+        "source": "agent_actions"
+      },
+      {
+        "bronze_rows": 29858,
+        "distinct_event_ids": 29858,
+        "duplicate_event_ids": 0,
+        "earliest_event_time": "2026-07-28 16:00:32.716-04",
+        "latest_event_time": "2026-07-30 12:12:28.338-04",
+        "latest_ingested_at": "2026-07-30 12:12:54.512191-04",
+        "latest_session_malformed_rows": 0,
+        "latest_session_reconciled": true,
+        "latest_session_valid_rows": 29858,
+        "null_event_ids": 0,
+        "null_event_times": 0,
+        "source": "farm_supervisor"
+      },
+      {
+        "bronze_rows": 138,
+        "distinct_event_ids": 138,
+        "duplicate_event_ids": 0,
+        "earliest_event_time": "2026-07-27 17:10:49.705-04",
+        "latest_event_time": "2026-07-29 20:33:20.985-04",
+        "latest_ingested_at": "2026-07-30 12:12:54.512191-04",
+        "latest_session_malformed_rows": 0,
+        "latest_session_reconciled": true,
+        "latest_session_valid_rows": 138,
+        "null_event_ids": 0,
+        "null_event_times": 0,
+        "source": "navigation"
+      },
+      {
+        "bronze_rows": 1,
+        "distinct_event_ids": 1,
+        "duplicate_event_ids": 0,
+        "earliest_event_time": "2026-07-30 12:18:09.006675-04",
+        "latest_event_time": "2026-07-30 12:18:09.006675-04",
+        "latest_ingested_at": "2026-07-30 12:18:09.006675-04",
+        "latest_session_malformed_rows": 0,
+        "latest_session_reconciled": true,
+        "latest_session_valid_rows": 0,
+        "null_event_ids": 0,
+        "null_event_times": 0,
+        "source": "state_snapshot"
+      }
+    ],
+    "mcp_operations": [
+      {
+        "duration_max_ms": 186.0,
+        "duration_p95_ms": 89.19999999999999,
+        "failed_operations": 15,
+        "operation": "enable_control",
+        "operation_count": 12219,
+        "success_rate": 0.9987724036336852,
+        "successful_operations": 12204
+      },
+      {
+        "duration_max_ms": 3005.0,
+        "duration_p95_ms": 94.5,
+        "failed_operations": 164,
+        "operation": "gameplay_command",
+        "operation_count": 7962,
+        "success_rate": 0.9794021602612409,
+        "successful_operations": 7798
+      },
+      {
+        "duration_max_ms": 691.0,
+        "duration_p95_ms": 87.89999999999999,
+        "failed_operations": 171,
+        "operation": "target_entity",
+        "operation_count": 5422,
+        "success_rate": 0.9684618222058281,
+        "successful_operations": 5251
+      },
+      {
+        "duration_max_ms": 205.0,
+        "duration_p95_ms": 94.34999999999998,
+        "failed_operations": 0,
+        "operation": "clear_target",
+        "operation_count": 5096,
+        "success_rate": 1.0,
+        "successful_operations": 5096
+      },
+      {
+        "duration_max_ms": 2062.0,
+        "duration_p95_ms": 115.3999999999998,
+        "failed_operations": 14,
+        "operation": "emergency_stop",
+        "operation_count": 3650,
+        "success_rate": 0.9961643835616438,
+        "successful_operations": 3636
+      },
+      {
+        "duration_max_ms": 1483.0,
+        "duration_p95_ms": 401.9999999999961,
+        "failed_operations": 37,
+        "operation": "menu_input",
+        "operation_count": 3624,
+        "success_rate": 0.9897902869757175,
+        "successful_operations": 3587
+      },
+      {
+        "duration_max_ms": 153.0,
+        "duration_p95_ms": 111.19999999999996,
+        "failed_operations": 22,
+        "operation": "service_teleport",
+        "operation_count": 2724,
+        "success_rate": 0.9919236417033774,
+        "successful_operations": 2702
+      },
+      {
+        "duration_max_ms": 117.0,
+        "duration_p95_ms": 82.75,
+        "failed_operations": 0,
+        "operation": "stop_movement",
+        "operation_count": 1934,
+        "success_rate": 1.0,
+        "successful_operations": 1934
+      },
+      {
+        "duration_max_ms": 137.0,
+        "duration_p95_ms": 130.0999999999999,
+        "failed_operations": 14,
+        "operation": "move_to_position",
+        "operation_count": 1604,
+        "success_rate": 0.9912718204488778,
+        "successful_operations": 1590
+      },
+      {
+        "duration_max_ms": 129.0,
+        "duration_p95_ms": 77.0,
+        "failed_operations": 92,
+        "operation": "set_goal_overlay",
+        "operation_count": 1156,
+        "success_rate": 0.9204152249134948,
+        "successful_operations": 1064
+      },
+      {
+        "duration_max_ms": 81.0,
+        "duration_p95_ms": 78.89999999999999,
+        "failed_operations": 0,
+        "operation": "move_to_entity",
+        "operation_count": 460,
+        "success_rate": 1.0,
+        "successful_operations": 460
+      },
+      {
+        "duration_max_ms": 150.0,
+        "duration_p95_ms": 125.0,
+        "failed_operations": 143,
+        "operation": "interact",
+        "operation_count": 409,
+        "success_rate": 0.6503667481662592,
+        "successful_operations": 266
+      },
+      {
+        "duration_max_ms": 92.0,
+        "duration_p95_ms": 76.59999999999998,
+        "failed_operations": 103,
+        "operation": "set_activity_feed",
+        "operation_count": 232,
+        "success_rate": 0.5560344827586207,
+        "successful_operations": 129
+      },
+      {
+        "duration_max_ms": 3122.0,
+        "duration_p95_ms": 1557.0,
+        "failed_operations": 0,
+        "operation": "directional_input",
+        "operation_count": 228,
+        "success_rate": 1.0,
+        "successful_operations": 228
+      },
+      {
+        "duration_max_ms": 73.0,
+        "duration_p95_ms": 69.94999999999999,
+        "failed_operations": 0,
+        "operation": "set_heading",
+        "operation_count": 180,
+        "success_rate": 1.0,
+        "successful_operations": 180
+      },
+      {
+        "duration_max_ms": 80.0,
+        "duration_p95_ms": 79.05,
+        "failed_operations": 0,
+        "operation": "move_inventory_item",
+        "operation_count": 124,
+        "success_rate": 1.0,
+        "successful_operations": 124
+      },
+      {
+        "duration_max_ms": 69.0,
+        "duration_p95_ms": 68.1,
+        "failed_operations": 2,
+        "operation": "start_roe_objective",
+        "operation_count": 46,
+        "success_rate": 0.9565217391304348,
+        "successful_operations": 44
+      },
+      {
+        "duration_max_ms": 92.0,
+        "duration_p95_ms": 86.8,
+        "failed_operations": 1,
+        "operation": "change_job",
+        "operation_count": 22,
+        "success_rate": 0.9545454545454546,
+        "successful_operations": 21
+      },
+      {
+        "duration_max_ms": 335.0,
+        "duration_p95_ms": 334.75,
+        "failed_operations": 0,
+        "operation": "interact_confirm",
+        "operation_count": 2,
+        "success_rate": 1.0,
+        "successful_operations": 2
+      }
+    ],
+    "navigation_daily": [
+      {
+        "camp_relocations": 0,
+        "collision_probe_success_rate": 0.6203703703703703,
+        "collision_probes": 108,
+        "event_date": "2026-07-27",
+        "line_of_sight_nudges": 0,
+        "navigation_failures": 0,
+        "navigation_retries": 0,
+        "partial_progress_probes": 32,
+        "service_teleport_operations": 0,
+        "stalled_probes": 9,
+        "successful_collision_probes": 67,
+        "zone_transitions": 0
+      },
+      {
+        "camp_relocations": 0,
+        "collision_probe_success_rate": 0.32,
+        "collision_probes": 25,
+        "event_date": "2026-07-28",
+        "line_of_sight_nudges": 1,
+        "navigation_failures": 4,
+        "navigation_retries": 30,
+        "partial_progress_probes": 10,
+        "service_teleport_operations": 46,
+        "stalled_probes": 7,
+        "successful_collision_probes": 8,
+        "zone_transitions": 0
+      },
+      {
+        "camp_relocations": 229,
+        "collision_probe_success_rate": 0.2,
+        "collision_probes": 5,
+        "event_date": "2026-07-29",
+        "line_of_sight_nudges": 55,
+        "navigation_failures": 7,
+        "navigation_retries": 282,
+        "partial_progress_probes": 0,
+        "service_teleport_operations": 324,
+        "stalled_probes": 4,
+        "successful_collision_probes": 1,
+        "zone_transitions": 4
+      },
+      {
+        "camp_relocations": 46,
+        "collision_probe_success_rate": null,
+        "collision_probes": 0,
+        "event_date": "2026-07-30",
+        "line_of_sight_nudges": 33,
+        "navigation_failures": 14,
+        "navigation_retries": 356,
+        "partial_progress_probes": 0,
+        "service_teleport_operations": 594,
+        "stalled_probes": 0,
+        "successful_collision_probes": 0,
+        "zone_transitions": 6
+      }
+    ],
+    "progress_daily": [
+      {
+        "completed_fights": 68,
+        "event_date": "2026-07-28",
+        "exp_earned": null,
+        "exp_metric_quality": "unavailable",
+        "maximum_level_reached": null,
+        "objective_milestones": 0,
+        "target_levels_reached": 0,
+        "zone_transitions": 0
+      },
+      {
+        "completed_fights": 707,
+        "event_date": "2026-07-29",
+        "exp_earned": null,
+        "exp_metric_quality": "unavailable",
+        "maximum_level_reached": 30,
+        "objective_milestones": 4,
+        "target_levels_reached": 4,
+        "zone_transitions": 4
+      },
+      {
+        "completed_fights": 470,
+        "event_date": "2026-07-30",
+        "exp_earned": 21838,
+        "exp_metric_quality": "state_observer_counter",
+        "maximum_level_reached": 20,
+        "objective_milestones": 1,
+        "target_levels_reached": 1,
+        "zone_transitions": 6
+      }
+    ]
+  },
+  "generated_at": "2026-07-30T16:33:32.700071+00:00",
+  "metric_notes": {
+    "deaths_recoveries": "Available only for state-observer-covered periods.",
+    "exp_earned": "Available only for state-observer-covered periods; historical fight events have no EXP delta.",
+    "git_attribution": "Historical SHAs are inferred from commit time; future collection observes HEAD at ingestion.",
+    "job": "Unavailable in the current event and state contracts.",
+    "teleport_dependency": "Service-teleport operation count is a proxy; event causality is unavailable."
+  },
+  "privacy": {
+    "classification": "public_aggregate",
+    "contains_agent_ids": false,
+    "contains_lease_ids": false,
+    "contains_raw_payloads": false,
+    "git_shas_truncated": true
+  },
+  "schema_version": 1
+}

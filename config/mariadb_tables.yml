@@ -1,0 +1,28 @@
+version: 1
+database: xidb
+access: read_only_snapshot
+tables:
+  - name: chars
+    grain: one row per character
+    key: [charid]
+    category: character
+  - name: char_jobs
+    grain: one row per character with job-level columns
+    key: [charid]
+    category: job
+  - name: char_inventory
+    grain: one row per character, inventory location, and slot
+    key: [charid, location, slot]
+    category: inventory
+  - name: char_missions
+    grain: one row per character with mission progress columns
+    key: [charid]
+    category: mission
+  - name: item_basic
+    grain: one row per item identifier
+    key: [itemid]
+    category: reference
+  - name: zone_settings
+    grain: one row per zone identifier
+    key: [zoneid]
+    category: reference

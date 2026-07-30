@@ -1,0 +1,53 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ffxi-telemetry-lab"
+version = "0.1.0"
+description = "Local-first telemetry engineering and analytics for FFXI Agent Lab"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [{name = "FFXI Agent Lab contributors"}]
+dependencies = [
+  "dbt-core>=1.8,<2",
+  "dbt-duckdb>=1.8,<2",
+  "duckdb>=1.1,<2",
+  "jupyter>=1.0,<2",
+  "nbclient>=0.10,<1",
+  "nbformat>=5.10,<6",
+  "pandas>=2.0,<3",
+  "plotly>=5.24,<7",
+  "pyarrow>=17,<24",
+  "pymysql>=1.1,<2",
+  "python-dotenv>=1.0,<2",
+  "streamlit>=1.39,<2",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8,<10",
+  "pytest-cov>=5,<8",
+  "ruff>=0.8,<1",
+]
+
+[project.scripts]
+ffxi-telemetry = "ffxi_telemetry.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.ruff.lint]
+select = ["E", "F", "I"]

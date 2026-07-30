@@ -1,0 +1,54 @@
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+secrets/
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+node_modules/
+.next/
+.wrangler/
+
+# The Sites runtime adapter is source code despite its directory name.
+!site/build/
+!site/build/sites-vite-plugin.ts
+
+# Private telemetry and analytical state
+data/
+*.duckdb
+*.duckdb.*
+*.parquet
+*.jsonl
+*.db
+.state/
+logs/
+
+# Notebook outputs and local Jupyter state
+.ipynb_checkpoints/
+artifacts/notebooks/
+
+# dbt
+target/
+logs/
+dbt_packages/
+
+# Editors and operating system
+.DS_Store
+.idea/
+.vscode/
+.user.yml
+
+# Streamlit secrets
+.streamlit/secrets.toml
