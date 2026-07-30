@@ -1,6 +1,6 @@
 # FFXI Telemetry Lab
 
-[Open the public FFXI Telemetry dashboard](https://ffxi-telemetry.pablo-de-la-cruz-pro.chatgpt.site)
+[Open the public FFXI Telemetry dashboard](https://ffxi-telemetry.vercel.app)
 
 Local-first data engineering and analytics for telemetry emitted by FFXI Agent
 Lab. This repository is operationally independent from gameplay: it only reads

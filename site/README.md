@@ -1,7 +1,7 @@
 # FFXI Telemetry public dashboard
 
 The privacy-reviewed, static aggregate view published at
-[ffxi-telemetry.pablo-de-la-cruz-pro.chatgpt.site](https://ffxi-telemetry.pablo-de-la-cruz-pro.chatgpt.site).
+[ffxi-telemetry.vercel.app](https://ffxi-telemetry.vercel.app).
 
 This site contains no raw telemetry, row-level records, credentials, agent IDs,
 lease IDs, target names, or full Git SHAs. Its values are copied only from the
