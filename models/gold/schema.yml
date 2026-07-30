@@ -13,6 +13,30 @@ models:
                 values: ["state_observer_counter", "unavailable"]
                 quote: true
 
+  - name: gold_progression_velocity
+    description: >
+      Consecutive read-only state observations with EXP and gil deltas, active-time
+      denominators, lease-average rates, and explicit interval-quality labels.
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: observed_at
+        tests: [not_null]
+      - name: metric_quality
+        tests:
+          - accepted_values:
+              arguments:
+                values:
+                  - "observed_delta"
+                  - "baseline_only"
+                  - "idle_interval"
+                  - "observation_gap"
+                  - "counter_reset"
+                  - "invalid_interval"
+                  - "inconsistent_counter"
+                  - "unavailable"
+                quote: true
+
   - name: gold_combat_reliability
     description: Daily combat outcomes, reliability, latency, actions, and observer-only safety counters.
     columns:

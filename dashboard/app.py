@@ -3,7 +3,6 @@ from __future__ import annotations
 import pandas as pd
 import plotly.express as px
 import streamlit as st
-
 from data import load_dashboard_snapshot
 
 INK = "#18212B"
@@ -87,6 +86,44 @@ def line_chart(
     return figure
 
 
+def progression_rate_chart(
+    dataframe: pd.DataFrame,
+    rate_column: str,
+    total_column: str,
+    title: str,
+    color: str,
+):
+    figure = px.bar(
+        dataframe,
+        x="period_start",
+        y=rate_column,
+        custom_data=[total_column, "active_seconds", "observed_intervals"],
+    )
+    figure.update_traces(
+        marker_color=color,
+        hovertemplate=(
+            "%{x}<br>"
+            + title
+            + ": %{y:,.0f}/active hour<br>"
+            + "Period total: %{customdata[0]:,.0f}<br>"
+            + "Active coverage: %{customdata[1]:,.0f}s<br>"
+            + "Observed intervals: %{customdata[2]:,.0f}<extra></extra>"
+        ),
+    )
+    figure.update_layout(
+        title={"text": title},
+        height=360,
+        margin=dict(l=10, r=10, t=60, b=10),
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        font_color=INK,
+        showlegend=False,
+        xaxis=dict(title=None, gridcolor=GRID),
+        yaxis=dict(title="per active hour", gridcolor=GRID, rangemode="tozero"),
+    )
+    return figure
+
+
 try:
     current = snapshot()
 except (FileNotFoundError, ValueError) as exc:
@@ -133,6 +170,8 @@ st.markdown(
 )
 
 progress = date_filter(frame("progress_daily"))
+progress_velocity = frame("progression_velocity")
+progress_current = frame("progression_current")
 combat = date_filter(frame("combat_daily"))
 navigation = date_filter(frame("navigation_daily"))
 mcp = frame("mcp_operations")
@@ -194,6 +233,100 @@ with progress_tab:
                 "EXP earned is unavailable for the historical backfill. "
                 "It appears only after the read-only state observer starts."
             )
+
+    st.markdown("#### Progression velocity")
+    st.caption(
+        "Rates use consecutive observer counter deltas divided by active supervisor "
+        "elapsed time. Day and week views recompute weighted rates; hourly rates are "
+        "never summed."
+    )
+    if not progress_current.empty:
+        latest = progress_current.iloc[-1]
+        pace_cards = st.columns(4)
+        latest_exp_rate = latest.get("lease_exp_per_active_hour")
+        latest_gil_rate = latest.get("lease_gil_per_active_hour")
+        pace_cards[0].metric(
+            "Current lease EXP/hour",
+            f"{float(latest_exp_rate):,.0f}" if pd.notna(latest_exp_rate) else "Collecting",
+        )
+        pace_cards[1].metric(
+            "Current lease gil/hour",
+            f"{float(latest_gil_rate):,.0f}" if pd.notna(latest_gil_rate) else "Collecting",
+        )
+        pace_cards[2].metric(
+            "Current lease EXP",
+            f"{int(latest['lease_exp_earned']):,}"
+            if pd.notna(latest.get("lease_exp_earned"))
+            else "Unavailable",
+        )
+        pace_cards[3].metric(
+            "Current lease gil",
+            f"{int(latest['lease_gil_earned']):,}"
+            if pd.notna(latest.get("lease_gil_earned"))
+            else "Unavailable",
+        )
+
+    grain = st.radio(
+        "Aggregation",
+        ["Hour", "Day", "Week"],
+        horizontal=True,
+        help=(
+            "Hour is the smallest stable public grain. "
+            "Minute-level rates are intentionally omitted."
+        ),
+    ).lower()
+    selected_velocity = progress_velocity[
+        progress_velocity.get("period_grain", pd.Series(dtype=str)).eq(grain)
+    ].copy()
+    if not selected_velocity.empty:
+        selected_velocity["period_start"] = pd.to_datetime(
+            selected_velocity["period_start"]
+        )
+        selected_velocity = selected_velocity[
+            (selected_velocity["period_start"].dt.date >= start_date)
+            & (selected_velocity["period_start"].dt.date <= end_date)
+        ]
+    if selected_velocity.empty:
+        st.info(
+            "Collecting a trustworthy trend baseline. Two consecutive snapshots in "
+            "the same lease are required, and gaps over five minutes are excluded."
+        )
+    else:
+        velocity_columns = st.columns(2)
+        velocity_columns[0].plotly_chart(
+            progression_rate_chart(
+                selected_velocity,
+                "exp_per_active_hour",
+                "exp_earned",
+                f"EXP per active hour by {grain}",
+                "#8B5CF6",
+            ),
+            use_container_width=True,
+        )
+        velocity_columns[1].plotly_chart(
+            progression_rate_chart(
+                selected_velocity,
+                "gil_per_active_hour",
+                "gil_earned",
+                f"Gil per active hour by {grain}",
+                GOLD,
+            ),
+            use_container_width=True,
+        )
+        st.dataframe(
+            selected_velocity[
+                [
+                    "period_start",
+                    "exp_earned",
+                    "exp_per_active_hour",
+                    "gil_earned",
+                    "gil_per_active_hour",
+                    "active_seconds",
+                ]
+            ],
+            hide_index=True,
+            use_container_width=True,
+        )
     st.caption("Job breakdown is unavailable in the current event and state contracts.")
 
 with combat_tab:

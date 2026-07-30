@@ -11,6 +11,7 @@ select
     json_extract_string(raw_json, '$.configuration_hash') as configuration_hash,
     try_cast(json_extract_string(raw_json, '$.elapsed_seconds') as bigint) as elapsed_seconds,
     try_cast(json_extract_string(raw_json, '$.counters.exp_earned') as bigint) as exp_earned,
+    try_cast(json_extract_string(raw_json, '$.counters.gil_earned') as bigint) as gil_earned,
     try_cast(json_extract_string(raw_json, '$.counters.fights_completed') as bigint)
         as fights_completed,
     try_cast(json_extract_string(raw_json, '$.counters.deaths') as bigint) as deaths,

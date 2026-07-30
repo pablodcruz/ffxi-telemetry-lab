@@ -66,6 +66,10 @@ def build_parser() -> argparse.ArgumentParser:
     )
     public.add_argument("--duckdb-path")
     public.add_argument("--output", default="dashboard/public_snapshot.json")
+    public.add_argument(
+        "--site-output",
+        help="Optional mirrored public aggregate snapshot for the static site",
+    )
     return parser
 
 
@@ -112,7 +116,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 args.tables,
             )
         elif args.command == "export-public":
-            result = export_public_snapshot(settings.duckdb_path, args.output)
+            result = export_public_snapshot(
+                settings.duckdb_path,
+                args.output,
+                args.site_output,
+            )
         else:
             raise ValueError(f"unknown command: {args.command}")
         print(json.dumps(result, indent=2, sort_keys=True, default=str))

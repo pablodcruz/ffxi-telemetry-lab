@@ -1,4 +1,10 @@
 import { TelemetryField } from "./telemetry-field";
+import {
+  ProgressionRatePanel,
+  type ProgressionCurrentRow,
+  type ProgressionVelocityRow,
+} from "./progression-rate-panel";
+import publicSnapshot from "../public/data/public_snapshot.json";
 
 const dailyFights = [
   { day: "Jul 28", value: 68, height: 10 },
@@ -20,12 +26,47 @@ const operations = [
   { name: "emergency_stop", count: 3650, success: "99.62%", volume: 29.9 },
 ];
 
-const qualityRows = [
-  { source: "Agent actions", rows: "47,094", malformed: 0, status: "Reconciled" },
-  { source: "Supervisor events", rows: "29,858", malformed: 0, status: "Reconciled" },
-  { source: "Navigation probes", rows: "138", malformed: 0, status: "Reconciled" },
-  { source: "State snapshots", rows: "1", malformed: 0, status: "Observed" },
-];
+const sourceLabels: Record<string, string> = {
+  agent_actions: "Agent actions",
+  farm_supervisor: "Supervisor events",
+  navigation: "Navigation probes",
+  state_snapshot: "State snapshots",
+};
+
+const qualityRows = publicSnapshot.datasets.data_quality.map((row) => ({
+  source: sourceLabels[row.source] ?? row.source,
+  rows: row.bronze_rows.toLocaleString("en-US"),
+  malformed: row.latest_session_malformed_rows,
+  status: row.source === "state_snapshot" ? "Observed" : "Reconciled",
+}));
+
+const bronzeRows = publicSnapshot.datasets.data_quality.reduce(
+  (total, row) => total + row.bronze_rows,
+  0,
+);
+
+const generatedAt = new Date(publicSnapshot.generated_at);
+const generatedDate = new Intl.DateTimeFormat("en-US", {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "UTC",
+}).format(generatedAt);
+const generatedTime = new Intl.DateTimeFormat("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+  timeZone: "UTC",
+}).format(generatedAt);
+
+const progressionVelocity =
+  publicSnapshot.datasets.progression_velocity as ProgressionVelocityRow[];
+const progressionCurrent =
+  (publicSnapshot.datasets.progression_current[0] as ProgressionCurrentRow | undefined) ??
+  null;
 
 function Metric({
   index,
@@ -148,13 +189,13 @@ export default function Home() {
               <span>02</span>
               <i />
               <strong>Bronze</strong>
-              <small>77,091 rows</small>
+              <small>{bronzeRows.toLocaleString("en-US")} rows</small>
             </div>
             <div>
               <span>03</span>
               <i />
               <strong>Gold</strong>
-              <small>42 tests pass</small>
+              <small>47 nodes pass</small>
             </div>
           </div>
           <div className="terminal-status">
@@ -223,7 +264,7 @@ export default function Home() {
             <i />
             <i />
           </div>
-          <small>Snapshot · 16:18 UTC</small>
+          <small>Snapshot · {generatedTime} UTC</small>
         </div>
       </section>
 
@@ -281,13 +322,18 @@ export default function Home() {
             </aside>
           </div>
 
+          <ProgressionRatePanel
+            rows={progressionVelocity}
+            current={progressionCurrent}
+          />
+
           <aside className="coverage-callout">
             <span>Coverage note</span>
             <p>
-              Historical fight events do not contain EXP deltas. The first
-              read-only state observation recorded an in-lease EXP counter of
-              <strong> 21,838</strong>; it is not presented as a historical
-              total.
+              Historical fight events contain neither EXP nor gil deltas.
+              Velocity begins with the read-only state observer and currently
+              represents <strong>early coverage</strong>, not a historical
+              backfill.
             </p>
           </aside>
         </section>
@@ -431,7 +477,7 @@ export default function Home() {
           <div className="quality-summary">
             <div><strong>145</strong><span>frozen source files</span></div>
             <div><strong>0</strong><span>prefix hash mismatches</span></div>
-            <div><strong>42/42</strong><span>dbt models + tests</span></div>
+            <div><strong>47/47</strong><span>dbt nodes passed</span></div>
           </div>
           <div className="quality-table" role="table" aria-label="Source reconciliation">
             <div className="quality-head" role="row">
@@ -477,7 +523,7 @@ export default function Home() {
             <strong>FFXI Telemetry</strong>
             <span>Independent from gameplay by design.</span>
           </div>
-          <p>Aggregate snapshot generated Jul 30, 2026 · 16:18 UTC</p>
+          <p>Aggregate snapshot generated {generatedDate} UTC</p>
         </div>
       </footer>
     </main>

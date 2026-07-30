@@ -36,6 +36,8 @@ test("server-renders the public telemetry dashboard", async () => {
   assert.match(html, /measured\./);
   assert.match(html, /1,245/);
   assert.match(html, /47,094/);
+  assert.match(html, /EXP and gil, normalized by active time/);
+  assert.match(html, /Current lease EXP\/hour/);
   assert.match(html, /No raw payloads, agent IDs, lease IDs/);
   assert.match(html, /og:image/);
   assert.match(html, /\/og-v2\.png/);
@@ -55,6 +57,7 @@ test("source contains only the finished dashboard experience", async () => {
   assert.match(layout, /generateMetadata/);
   assert.match(layout, /\/og-v2\.png/);
   assert.match(page, /const qualityRows/);
+  assert.match(page, /ProgressionRatePanel/);
   assert.match(page, /No raw payloads, agent IDs, lease IDs/);
   assert.match(page, /Historical Git attribution is inferred/);
   assert.match(css, /--ink:/);

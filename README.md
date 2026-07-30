@@ -148,12 +148,13 @@ streamlit run dashboard/app.py
 Create a reviewed, row-free public snapshot after a successful dbt build:
 
 ```bash
-ffxi-telemetry export-public
+ffxi-telemetry export-public \
+  --site-output site/public/data/public_snapshot.json
 ```
 
-The static public dashboard source lives in `site/`. Update its reviewed
-aggregate constants only after inspecting the exported snapshot and rerunning
-the validation suite.
+The static public dashboard source lives in `site/`. Its tracked site snapshot
+is the same reviewed, aggregate-only export used by the local dashboard. Inspect
+the generated snapshot and rerun the validation suite before publishing.
 
 ## Low-frequency state observer
 

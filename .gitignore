@@ -35,6 +35,10 @@ data/
 .state/
 logs/
 
+# Reviewed, aggregate-only public export used by the static dashboard.
+!site/public/data/
+!site/public/data/public_snapshot.json
+
 # Notebook outputs and local Jupyter state
 .ipynb_checkpoints/
 artifacts/notebooks/

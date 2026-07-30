@@ -4,7 +4,7 @@ import datetime as dt
 import json
 import os
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import duckdb
 
@@ -26,6 +26,70 @@ PUBLIC_QUERIES = {
         from gold.gold_autonomous_progression
         group by event_date
         order by event_date
+    """,
+    "progression_velocity": """
+        with valid_intervals as (
+          select
+            observed_at,
+            active_seconds,
+            exp_earned_delta,
+            gil_earned_delta
+          from gold.gold_progression_velocity
+          where metric_quality = 'observed_delta'
+        ),
+        bucketed as (
+          select
+            'hour' period_grain,
+            date_trunc('hour', observed_at) period_start,
+            active_seconds,
+            exp_earned_delta,
+            gil_earned_delta
+          from valid_intervals
+          union all
+          select
+            'day' period_grain,
+            date_trunc('day', observed_at) period_start,
+            active_seconds,
+            exp_earned_delta,
+            gil_earned_delta
+          from valid_intervals
+          union all
+          select
+            'week' period_grain,
+            date_trunc('week', observed_at) period_start,
+            active_seconds,
+            exp_earned_delta,
+            gil_earned_delta
+          from valid_intervals
+        )
+        select
+          period_grain,
+          cast(period_start as varchar) period_start,
+          sum(active_seconds)::bigint active_seconds,
+          sum(exp_earned_delta)::bigint exp_earned,
+          sum(gil_earned_delta)::bigint gil_earned,
+          sum(exp_earned_delta) * 3600.0 / nullif(sum(active_seconds), 0)
+            exp_per_active_hour,
+          sum(gil_earned_delta) * 3600.0 / nullif(sum(active_seconds), 0)
+            gil_per_active_hour,
+          count(*)::bigint observed_intervals
+        from bucketed
+        group by period_grain, period_start
+        order by
+          case period_grain when 'hour' then 1 when 'day' then 2 else 3 end,
+          period_start
+    """,
+    "progression_current": """
+        select
+          cast(observed_at as varchar) observed_at,
+          elapsed_seconds,
+          lease_exp_earned,
+          lease_gil_earned,
+          lease_exp_per_active_hour,
+          lease_gil_per_active_hour,
+          metric_quality
+        from gold.gold_progression_velocity
+        qualify row_number() over (order by observed_at desc, event_id desc) = 1
     """,
     "combat_daily": """
         select
@@ -150,7 +214,7 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
         default=None,
     )
     return {
-        "schema_version": 1,
+        "schema_version": 2,
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "privacy": {
             "classification": "public_aggregate",
@@ -165,8 +229,17 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
         },
         "metric_notes": {
             "exp_earned": (
-                "Available only for state-observer-covered periods; historical "
+                "EXP trends use consecutive state-observer counter deltas; historical "
                 "fight events have no EXP delta."
+            ),
+            "gil_earned": (
+                "Gil trends use consecutive state-observer counter deltas; historical "
+                "fight events have no gil delta."
+            ),
+            "progression_velocity": (
+                "Per-active-hour rates divide summed counter deltas by summed supervisor "
+                "elapsed-time deltas. Rates are never summed. Intervals with counter resets, "
+                "non-positive active time, or observation gaps over five minutes are excluded."
             ),
             "deaths_recoveries": "Available only for state-observer-covered periods.",
             "job": "Unavailable in the current event and state contracts.",
@@ -182,8 +255,7 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
     }
 
 
-def export_public_snapshot(duckdb_path: Path, output: str) -> Dict[str, object]:
-    snapshot = build_public_snapshot(duckdb_path)
+def _write_snapshot(snapshot: Dict[str, object], output: str) -> Path:
     destination = Path(output).expanduser().resolve()
     destination.parent.mkdir(parents=True, exist_ok=True)
     temporary = destination.with_suffix(destination.suffix + ".tmp")
@@ -191,8 +263,20 @@ def export_public_snapshot(duckdb_path: Path, output: str) -> Dict[str, object]:
         json.dump(snapshot, handle, indent=2, sort_keys=True, default=str)
         handle.write("\n")
     os.replace(temporary, destination)
+    return destination
+
+
+def export_public_snapshot(
+    duckdb_path: Path,
+    output: str,
+    site_output: Optional[str] = None,
+) -> Dict[str, object]:
+    snapshot = build_public_snapshot(duckdb_path)
+    destination = _write_snapshot(snapshot, output)
+    site_destination = _write_snapshot(snapshot, site_output) if site_output else None
     return {
         "output": str(destination),
+        "site_output": str(site_destination) if site_destination else None,
         "generated_at": snapshot["generated_at"],
         "datasets": {name: len(rows) for name, rows in snapshot["datasets"].items()},
     }
