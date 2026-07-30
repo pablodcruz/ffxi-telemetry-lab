@@ -13,8 +13,14 @@ Requires Node.js 22.13 or later.
 npm install
 npm run build
 npm test
+npm run build:vercel
 ```
 
 `npm test` rebuilds the site and checks its server-rendered output, public
 metadata, privacy language, aggregate headline values, and removal of starter
 preview content.
+
+The default build remains the Sites/Vinext target. `build:vercel` performs a
+native Next.js production build, and `vercel.json` selects it when this
+directory is deployed as a Vercel project. Set the Vercel project root
+directory to `site`.
