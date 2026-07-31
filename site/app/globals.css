@@ -894,6 +894,17 @@ h1 span {
   scroll-snap-type: x mandatory;
   scrollbar-color: rgba(239, 190, 66, 0.5) rgba(255, 255, 255, 0.06);
   scrollbar-width: thin;
+  cursor: grab;
+}
+
+.nm-carousel-track.is-dragging {
+  scroll-snap-type: none;
+  cursor: grabbing;
+  user-select: none;
+}
+
+.nm-carousel-track.is-dragging .nm-card {
+  pointer-events: none;
 }
 
 .nm-carousel-track::-webkit-scrollbar {

@@ -46,7 +46,7 @@ test("server-renders the public telemetry dashboard", async () => {
   assert.match(html, /Twenty legends\./);
   assert.match(html, /Jaggedy-Eared Jack/);
   assert.match(html, /Charybdis/);
-  assert.match(html, /Swipe, scroll, or use arrow keys/);
+  assert.match(html, /Drag, swipe, scroll, or use arrow keys/);
   assert.match(html, /og:image/);
   assert.match(html, /\/og-v2\.png/);
   assert.doesNotMatch(html, /codex-preview/);
@@ -76,7 +76,12 @@ test("source contains only the finished dashboard experience", async () => {
   assert.match(page, /Historical Git attribution is inferred/);
   assert.match(css, /--ink:/);
   assert.match(css, /scroll-snap-type: x mandatory/);
+  assert.match(css, /cursor: grab/);
+  assert.match(css, /cursor: grabbing/);
   assert.match(nmCarousel, /Next notorious monster/);
+  assert.match(nmCarousel, /onPointerDown={onPointerDown}/);
+  assert.match(nmCarousel, /onPointerMove={onPointerMove}/);
+  assert.match(nmCarousel, /onClickCapture={onClickCapture}/);
   assert.equal(JSON.parse(nmCatalog).nms.length, 20);
   assert.match(liveConfig, /https:\/\/.*\.public\.blob\.vercel-storage\.com/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);

@@ -8,6 +8,8 @@ import {
   useRef,
   useState,
   type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
 } from "react";
 import catalog from "../public/data/nm_catalog.json";
 import { PUBLIC_TELEMETRY_SNAPSHOT_URL } from "./live-config";
@@ -231,7 +233,15 @@ export function NmCarousel({ initialSnapshot }: { initialSnapshot: NmSnapshot })
   const [snapshot, setSnapshot] = useState(initialSnapshot);
   const [now, setNow] = useState(() => Date.now());
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
   const trackRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+    moved: boolean;
+  } | null>(null);
+  const suppressClickRef = useRef(false);
 
   const rows = useMemo(() => {
     const liveRows = snapshot.datasets.nm_status;
@@ -292,6 +302,65 @@ export function NmCarousel({ initialSnapshot }: { initialSnapshot: NmSnapshot })
     }
   };
 
+  const onPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === "touch" || event.button !== 0) return;
+    const track = trackRef.current;
+    if (!track) return;
+    dragRef.current = {
+      pointerId: event.pointerId,
+      startX: event.clientX,
+      startScrollLeft: track.scrollLeft,
+      moved: false,
+    };
+    track.setPointerCapture(event.pointerId);
+  };
+
+  const onPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    const track = trackRef.current;
+    const drag = dragRef.current;
+    if (!track || !drag || drag.pointerId !== event.pointerId) return;
+
+    const distance = event.clientX - drag.startX;
+    if (!drag.moved && Math.abs(distance) < 5) return;
+    if (!drag.moved) {
+      drag.moved = true;
+      setIsDragging(true);
+    }
+    event.preventDefault();
+    track.scrollLeft = drag.startScrollLeft - distance;
+  };
+
+  const finishPointerDrag = (event: PointerEvent<HTMLDivElement>) => {
+    const track = trackRef.current;
+    const drag = dragRef.current;
+    if (!track || !drag || drag.pointerId !== event.pointerId) return;
+
+    dragRef.current = null;
+    if (track.hasPointerCapture(event.pointerId)) {
+      track.releasePointerCapture(event.pointerId);
+    }
+    setIsDragging(false);
+
+    if (!drag.moved) return;
+    suppressClickRef.current = true;
+    window.setTimeout(() => {
+      suppressClickRef.current = false;
+    }, 0);
+
+    const step = cardStep(track);
+    track.scrollTo({
+      left: Math.round(track.scrollLeft / step) * step,
+      behavior: "smooth",
+    });
+  };
+
+  const onClickCapture = (event: MouseEvent<HTMLDivElement>) => {
+    if (!suppressClickRef.current) return;
+    event.preventDefault();
+    event.stopPropagation();
+    suppressClickRef.current = false;
+  };
+
   const freshnessClass = observer.observer_status === "fresh" ? "is-fresh" : "is-stale";
   const freshnessTitle =
     observer.observer_status === "fresh"
@@ -323,7 +392,7 @@ export function NmCarousel({ initialSnapshot }: { initialSnapshot: NmSnapshot })
         <div>
           <strong>{String(activeIndex + 1).padStart(2, "0")}</strong>
           <span>/ {rows.length}</span>
-          <small>Swipe, scroll, or use arrow keys</small>
+          <small>Drag, swipe, scroll, or use arrow keys</small>
         </div>
         <div className="nm-carousel-buttons">
           <button type="button" onClick={() => move(-1)} aria-label="Previous notorious monster">
@@ -337,10 +406,16 @@ export function NmCarousel({ initialSnapshot }: { initialSnapshot: NmSnapshot })
 
       <div className="nm-carousel-shell">
         <div
-          className="nm-carousel-track"
+          className={`nm-carousel-track${isDragging ? " is-dragging" : ""}`}
           ref={trackRef}
           onScroll={onScroll}
           onKeyDown={onKeyDown}
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={finishPointerDrag}
+          onPointerCancel={finishPointerDrag}
+          onClickCapture={onClickCapture}
+          onDragStart={(event) => event.preventDefault()}
           tabIndex={0}
           aria-label="Twenty notorious monsters"
         >
