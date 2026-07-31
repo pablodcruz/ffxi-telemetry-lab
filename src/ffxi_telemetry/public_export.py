@@ -8,6 +8,8 @@ from typing import Dict, List, Optional
 
 import duckdb
 
+from .nm_snapshot import build_public_nm_datasets
+
 PUBLIC_QUERIES = {
     "progress_daily": """
         select
@@ -232,6 +234,7 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
         datasets = {name: _records(connection, query) for name, query in PUBLIC_QUERIES.items()}
     finally:
         connection.close()
+    datasets.update(build_public_nm_datasets())
     quality = datasets["data_quality"]
     coverage_start = min(
         (row["earliest_event_time"] for row in quality if row["earliest_event_time"]),
@@ -242,7 +245,7 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
         default=None,
     )
     return {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "privacy": {
             "classification": "public_aggregate",
@@ -277,6 +280,11 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
             "git_attribution": (
                 "Historical SHAs are inferred from commit time; future collection observes "
                 "HEAD at ingestion."
+            ),
+            "nm_status": (
+                "NM state is a direct hourly map observation when available. Unknown and stale "
+                "states are never converted into inferred eligibility. Script chance and cooldown "
+                "values are reference defaults, not observed effective server settings."
             ),
         },
         "datasets": datasets,

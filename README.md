@@ -15,6 +15,7 @@ Git SHAs, credentials, Parquet, and DuckDB files are never published.
 
 ```text
 FFXI JSONL files (read only)
+Optional allowlisted NM map snapshot (read only)
   -> allowlisted collector
   -> immutable Bronze Parquet + quarantine
   -> DuckDB / dbt Silver
@@ -155,6 +156,27 @@ The static public dashboard source lives in `site/`. Its tracked site snapshot
 is the same reviewed, aggregate-only export used by the local dashboard. Inspect
 the generated snapshot and rerun the validation suite before publishing.
 
+### Notorious monster watch
+
+The public dashboard includes a horizontally scrollable carousel of 20 curated
+lottery NMs. Each card uses a locally mirrored, attributed FFXIclopedia image
+and a rule reference pinned to a reviewed LandSandBoat commit. The displayed
+script chance and cooldown are reference defaults until a map observation
+reports effective private-server values.
+
+Current NM state is optional and hourly. Configure an ignored, read-only JSON
+snapshot path when the private map observer is available:
+
+```bash
+TELEMETRY_NM_STATE_PATH=/private/path/to/nm-state.json
+```
+
+The public exporter accepts only the fields documented in
+[`docs/nm_observer_contract.md`](docs/nm_observer_contract.md). Extra fields,
+including raw payloads or identifiers, reject the export. Missing observations
+and observations older than two hours are rendered as `Unknown`; the dashboard
+never infers lottery eligibility from uptime alone.
+
 ## Continuous hourly public metrics
 
 The optional observer samples only `runtime/farm-supervisor/primary.json` and
@@ -196,6 +218,10 @@ and whenever its tab regains focus. Hour charts show completed buckets only;
 the current partial period and data age are labeled separately. Full local
 history is retained indefinitely. The public extract keeps the latest 90 days
 of hourly buckets plus durable daily and weekly rollups.
+
+The same hourly publication includes the 20-row NM watchlist. It remains
+operational when the map observer is absent: reference artwork and rules still
+load, while direct-state fields remain explicitly unknown.
 
 ## Read-only MariaDB snapshots
 

@@ -20,6 +20,8 @@ snapshot.
   retries. Teleport operations are labeled as a proxy.
 - Data quality: source coverage, uniqueness, event-time completeness,
   quarantine, and latest-session reconciliation.
+- NM watch: 20 curated lottery NMs with artwork, pinned script defaults, direct
+  map state when available, and explicit unknown or stale states otherwise.
 
 ## Visual map
 
@@ -32,10 +34,17 @@ snapshot.
 | Combat | What is the proactive/reactive mix? | Stacked bar | Day and mode | Blue/gold |
 | Navigation | Which navigation signals dominate? | Grouped bar | Day and event | Five-category |
 | MCP | Which operations dominate control volume? | Ranked horizontal bar | Operation | Blue |
+| NM watch | Which tracked NMs are spawned, primed, blocked, or lottery-open? | Horizontal snap carousel | Latest hourly observation | Status palette |
 
 All charts use a zero baseline for count comparisons, explicit titles, quiet
 grid lines, and non-color labels or ordering. The public extract excludes raw
 payloads, agent IDs, lease IDs, full Git SHAs, targets, and row-level records.
+
+NM status priority is `spawned`, `primed`, `cooldown_blocked`,
+`lottery_open`, then `unknown`. Observations older than two hours are displayed
+as unknown while retaining the previous state only as explicitly stale context.
+Script defaults are not presented as effective private-server settings unless a
+direct observation confirms them.
 
 EXP/hour and gil/hour are weighted rates:
 

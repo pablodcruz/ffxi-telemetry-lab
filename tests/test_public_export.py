@@ -8,7 +8,7 @@ def test_public_export_writes_identical_dashboard_and_site_snapshots(
     monkeypatch,
 ) -> None:
     snapshot = {
-        "schema_version": 2,
+        "schema_version": 3,
         "generated_at": "2026-07-30T19:17:52+00:00",
         "datasets": {"progression_velocity": [{"period_grain": "hour"}]},
     }

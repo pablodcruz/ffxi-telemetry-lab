@@ -43,6 +43,10 @@ test("server-renders the public telemetry dashboard", async () => {
     /Completed (?:<!-- -->)?hour(?:<!-- -->)?s/,
   );
   assert.match(html, /No raw payloads, agent IDs, lease IDs/);
+  assert.match(html, /Twenty legends\./);
+  assert.match(html, /Jaggedy-Eared Jack/);
+  assert.match(html, /Charybdis/);
+  assert.match(html, /Swipe, scroll, or use arrow keys/);
   assert.match(html, /og:image/);
   assert.match(html, /\/og-v2\.png/);
   assert.doesNotMatch(html, /codex-preview/);
@@ -50,11 +54,13 @@ test("server-renders the public telemetry dashboard", async () => {
 });
 
 test("source contains only the finished dashboard experience", async () => {
-  const [layout, page, css, liveConfig, packageJson, hostingJson] = await Promise.all([
+  const [layout, page, css, liveConfig, nmCarousel, nmCatalog, packageJson, hostingJson] = await Promise.all([
     readFile(new URL("app/layout.tsx", siteRoot), "utf8"),
     readFile(new URL("app/page.tsx", siteRoot), "utf8"),
     readFile(new URL("app/globals.css", siteRoot), "utf8"),
     readFile(new URL("app/live-config.ts", siteRoot), "utf8"),
+    readFile(new URL("app/nm-carousel.tsx", siteRoot), "utf8"),
+    readFile(new URL("public/data/nm_catalog.json", siteRoot), "utf8"),
     readFile(new URL("package.json", siteRoot), "utf8"),
     readFile(new URL(".openai/hosting.json", siteRoot), "utf8"),
   ]);
@@ -65,9 +71,13 @@ test("source contains only the finished dashboard experience", async () => {
   assert.match(page, /ProgressionRatePanel/);
   assert.match(page, /Hourly refresh/);
   assert.match(page, /initialProgressionSnapshot/);
+  assert.match(page, /NmCarousel/);
   assert.match(page, /No raw payloads, agent IDs, lease IDs/);
   assert.match(page, /Historical Git attribution is inferred/);
   assert.match(css, /--ink:/);
+  assert.match(css, /scroll-snap-type: x mandatory/);
+  assert.match(nmCarousel, /Next notorious monster/);
+  assert.equal(JSON.parse(nmCatalog).nms.length, 20);
   assert.match(liveConfig, /https:\/\/.*\.public\.blob\.vercel-storage\.com/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);
   assert.match(

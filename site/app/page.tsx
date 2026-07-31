@@ -1,4 +1,5 @@
 import { TelemetryField } from "./telemetry-field";
+import { NmCarousel, type NmSnapshot } from "./nm-carousel";
 import {
   ProgressionRatePanel,
   type ProgressionSnapshot,
@@ -47,6 +48,8 @@ const bronzeRows = publicSnapshot.datasets.data_quality.reduce(
 const initialProgressionSnapshot =
   publicSnapshot as unknown as ProgressionSnapshot;
 
+const initialNmSnapshot = publicSnapshot as unknown as NmSnapshot;
+
 function Metric({
   index,
   label,
@@ -87,6 +90,7 @@ export default function Home() {
           <span>FFXI Telemetry</span>
         </a>
         <nav aria-label="Dashboard sections">
+          <a href="#notorious-monsters">NM watch</a>
           <a href="#progression">Progression</a>
           <a href="#combat">Combat</a>
           <a href="#navigation">Navigation</a>
@@ -248,6 +252,8 @@ export default function Home() {
       </section>
 
       <div className="dashboard-body section-shell">
+        <NmCarousel initialSnapshot={initialNmSnapshot} />
+
         <section className="panel progression" id="progression">
           <div className="section-heading">
             <div>
