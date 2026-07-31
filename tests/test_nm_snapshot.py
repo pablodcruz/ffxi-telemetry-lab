@@ -27,6 +27,29 @@ def test_catalog_exports_exactly_twenty_unknown_nms_without_observer() -> None:
     assert len({row["nm_key"] for row in datasets["nm_status"]}) == 20
     assert {row["status"] for row in datasets["nm_status"]} == {"unknown"}
     assert all(row["image_url"].startswith("/nm/") for row in datasets["nm_status"])
+    assert all(row["recorded_defeat_count"] == 0 for row in datasets["nm_status"])
+
+
+def test_recorded_defeats_enrich_history_without_inferring_status() -> None:
+    datasets = build_public_nm_datasets(
+        project_root=PROJECT_ROOT,
+        recorded_defeats=[
+            {
+                "target_name": "Leaping Lizzy",
+                "recorded_defeat_count": 4,
+                "last_recorded_defeat_at": "2026-07-31 09:49:07.663-04",
+            }
+        ],
+    )
+
+    lizzy = next(
+        row for row in datasets["nm_status"] if row["nm_key"] == "leaping-lizzy"
+    )
+    assert lizzy["recorded_defeat_count"] == 4
+    assert lizzy["last_observed_kill_at"] == "2026-07-31T13:49:07.663000+00:00"
+    assert lizzy["status"] == "unknown"
+    assert lizzy["data_quality"] == "recorded_defeat_only"
+    assert datasets["nm_observer"][0]["observer_status"] == "not_configured"
 
 
 def test_fresh_observation_merges_only_direct_map_state(tmp_path: Path) -> None:

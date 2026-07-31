@@ -219,6 +219,16 @@ PUBLIC_QUERIES = {
     """,
 }
 
+NM_RECORDED_DEFEATS_QUERY = """
+    select
+      target_name,
+      count(*)::bigint recorded_defeat_count,
+      cast(max(event_time) as varchar) last_recorded_defeat_at
+    from silver.silver_fights
+    where target_name is not null
+    group by target_name
+"""
+
 
 def _records(connection: duckdb.DuckDBPyConnection, query: str) -> List[Dict[str, object]]:
     cursor = connection.execute(query)
@@ -232,9 +242,10 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
     connection = duckdb.connect(str(duckdb_path), read_only=True)
     try:
         datasets = {name: _records(connection, query) for name, query in PUBLIC_QUERIES.items()}
+        recorded_defeats = _records(connection, NM_RECORDED_DEFEATS_QUERY)
     finally:
         connection.close()
-    datasets.update(build_public_nm_datasets())
+    datasets.update(build_public_nm_datasets(recorded_defeats=recorded_defeats))
     quality = datasets["data_quality"]
     coverage_start = min(
         (row["earliest_event_time"] for row in quality if row["earliest_event_time"]),
@@ -245,7 +256,7 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
         default=None,
     )
     return {
-        "schema_version": 3,
+        "schema_version": 4,
         "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
         "privacy": {
             "classification": "public_aggregate",
@@ -284,7 +295,9 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
             "nm_status": (
                 "NM state is a direct hourly map observation when available. Unknown and stale "
                 "states are never converted into inferred eligibility. Script chance and cooldown "
-                "values are reference defaults, not observed effective server settings."
+                "values are reference defaults, not observed effective server settings. Recorded "
+                "defeat counts and timestamps come from allowlisted supervisor fight-complete "
+                "events and do not imply current spawn or lottery state."
             ),
         },
         "datasets": datasets,

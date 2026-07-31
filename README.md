@@ -164,6 +164,12 @@ and a rule reference pinned to a reviewed LandSandBoat commit. The displayed
 script chance and cooldown are reference defaults until a map observation
 reports effective private-server values.
 
+Hourly exports also match the 20-name allowlist against supervisor
+`fight_complete` events. Cards show the aggregate recorded-defeat count and
+latest recorded defeat even when the map observer is unavailable. These event
+records prove a supervised fight completed; they do not prove the NM's current
+spawn, cooldown, or lottery state.
+
 Current NM state is optional and hourly. Configure an ignored, read-only JSON
 snapshot path when the private map observer is available:
 

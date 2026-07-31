@@ -82,6 +82,8 @@ test("source contains only the finished dashboard experience", async () => {
   assert.match(nmCarousel, /onPointerDown={onPointerDown}/);
   assert.match(nmCarousel, /onPointerMove={onPointerMove}/);
   assert.match(nmCarousel, /onClickCapture={onClickCapture}/);
+  assert.match(nmCarousel, /Recorded defeats/);
+  assert.match(nmCarousel, /recorded_defeat_count/);
   assert.equal(JSON.parse(nmCatalog).nms.length, 20);
   assert.match(liveConfig, /https:\/\/.*\.public\.blob\.vercel-storage\.com/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);

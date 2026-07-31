@@ -45,6 +45,7 @@ export type NmStatusRow = NmCatalogRow & {
   is_spawned: boolean | null;
   is_primed: boolean | null;
   placeholder_status: string;
+  recorded_defeat_count: number;
   last_observed_kill_at: string | null;
   next_lottery_opportunity_at: string | null;
   effective_chance_percent: number | null;
@@ -92,6 +93,7 @@ function fallbackRows(): NmStatusRow[] {
     is_spawned: null,
     is_primed: null,
     placeholder_status: "unknown",
+    recorded_defeat_count: 0,
     last_observed_kill_at: null,
     next_lottery_opportunity_at: null,
     effective_chance_percent: null,
@@ -142,6 +144,17 @@ function opportunityLabel(row: NmStatusRow) {
   if (row.status === "primed") return "Pending respawn timer";
   if (row.cooldown_opens_at) return timeLabel(row.cooldown_opens_at);
   return "Awaiting map observer";
+}
+
+function recordedDefeatLabel(row: NmStatusRow) {
+  if (row.recorded_defeat_count > 0) {
+    const noun = row.recorded_defeat_count === 1 ? "defeat" : "defeats";
+    return `${row.recorded_defeat_count} ${noun} · latest ${timeLabel(row.last_observed_kill_at)}`;
+  }
+  if (row.last_observed_kill_at) {
+    return `Direct observer · ${timeLabel(row.last_observed_kill_at)}`;
+  }
+  return "None in supervisor logs";
 }
 
 function observerFallback(): NmObserverRow {
@@ -207,8 +220,8 @@ function NmCard({ row, index }: { row: NmStatusRow; index: number }) {
             <dd>{opportunityLabel(row)}</dd>
           </div>
           <div className="nm-data-wide">
-            <dt>Last observed defeat</dt>
-            <dd>{timeLabel(row.last_observed_kill_at)}</dd>
+            <dt>Recorded defeats</dt>
+            <dd>{recordedDefeatLabel(row)}</dd>
           </div>
         </dl>
 

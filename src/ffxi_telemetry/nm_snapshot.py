@@ -45,6 +45,12 @@ def _parse_timestamp(value: object) -> Optional[dt.datetime]:
     if not isinstance(value, str) or not value:
         return None
     normalized = value.replace("Z", "+00:00")
+    if (
+        len(normalized) >= 3
+        and normalized[-3] in {"+", "-"}
+        and normalized[-2:].isdigit()
+    ):
+        normalized += ":00"
     try:
         parsed = dt.datetime.fromisoformat(normalized)
     except ValueError:
@@ -122,6 +128,7 @@ def _unknown_row(catalog_row: Dict[str, object]) -> Dict[str, object]:
         "is_spawned": None,
         "is_primed": None,
         "placeholder_status": "unknown",
+        "recorded_defeat_count": 0,
         "last_observed_kill_at": None,
         "next_lottery_opportunity_at": None,
         "effective_chance_percent": None,
@@ -130,20 +137,58 @@ def _unknown_row(catalog_row: Dict[str, object]) -> Dict[str, object]:
     }
 
 
+def _merge_recorded_defeat(
+    row: Dict[str, object],
+    catalog_row: Dict[str, object],
+    recorded_by_name: Dict[str, Dict[str, object]],
+) -> None:
+    display_name = catalog_row.get("display_name")
+    recorded = recorded_by_name.get(display_name) if isinstance(display_name, str) else None
+    if recorded is None:
+        return
+
+    try:
+        count = max(0, int(recorded.get("recorded_defeat_count", 0)))
+    except (TypeError, ValueError):
+        count = 0
+    row["recorded_defeat_count"] = count
+
+    recorded_at = recorded.get("last_recorded_defeat_at")
+    recorded_time = _parse_timestamp(recorded_at)
+    observed_time = _parse_timestamp(row.get("last_observed_kill_at"))
+    if recorded_time is not None and (
+        observed_time is None or recorded_time > observed_time
+    ):
+        row["last_observed_kill_at"] = recorded_time.isoformat()
+    if count > 0 and row["data_quality"] == "not_observed":
+        row["data_quality"] = "recorded_defeat_only"
+
+
 def build_public_nm_datasets(
     *,
     project_root: Optional[Path] = None,
     state_path: Optional[Path] = None,
     now: Optional[dt.datetime] = None,
+    recorded_defeats: Optional[List[Dict[str, object]]] = None,
 ) -> Dict[str, List[Dict[str, object]]]:
     root = project_root or _project_root()
     catalog = _load_catalog(root)
     catalog_rows = catalog["nms"]
     resolved_state = _resolved_state_path(state_path)
     observation = _load_observation(resolved_state)
+    recorded_by_name = {
+        row["target_name"]: row
+        for row in (recorded_defeats or [])
+        if isinstance(row, dict) and isinstance(row.get("target_name"), str)
+    }
     current_time = (now or dt.datetime.now(dt.timezone.utc)).astimezone(dt.timezone.utc)
 
     if observation is None:
+        public_rows = []
+        for catalog_row in catalog_rows:
+            row = _unknown_row(catalog_row)
+            _merge_recorded_defeat(row, catalog_row, recorded_by_name)
+            public_rows.append(row)
         return {
             "nm_observer": [
                 {
@@ -156,7 +201,7 @@ def build_public_nm_datasets(
                     "refresh_cadence": "hourly",
                 }
             ],
-            "nm_status": [_unknown_row(row) for row in catalog_rows],
+            "nm_status": public_rows,
         }
 
     observed_at = _parse_timestamp(observation.get("observed_at"))
@@ -195,6 +240,7 @@ def build_public_nm_datasets(
             row["data_quality"] = (
                 "stale_direct_observation" if is_stale else "direct_map_observation"
             )
+        _merge_recorded_defeat(row, catalog_row, recorded_by_name)
         public_rows.append(row)
 
     ruleset_sha = observation.get("ruleset_git_sha")

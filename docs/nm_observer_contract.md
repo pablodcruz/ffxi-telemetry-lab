@@ -50,3 +50,9 @@ hours becomes `unknown` in the public snapshot and is labeled stale.
 
 The canonical 20-NM catalog, display order, artwork provenance, placeholder,
 and pinned default rules live in `site/public/data/nm_catalog.json`.
+
+Independently of this optional observer, the hourly public export enriches the
+catalog with aggregate defeat counts and the latest recorded defeat from
+allowlisted supervisor `fight_complete` events whose target name exactly
+matches the catalog. This event-derived history never changes an NM's current
+status from `unknown` and never claims lottery eligibility.

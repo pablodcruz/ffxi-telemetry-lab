@@ -1,7 +1,7 @@
 {
   "coverage": {
     "earliest_event_time": "2026-07-25 17:41:07.588-04",
-    "latest_event_time": "2026-07-31 08:06:33.000563-04"
+    "latest_event_time": "2026-07-31 10:07:09.141525-04"
   },
   "datasets": {
     "combat_daily": [
@@ -68,22 +68,22 @@
       {
         "aggro_response_max_ms": 552.0,
         "aggro_response_p95_ms": 552.0,
-        "attack_issued": 236,
-        "attack_rejection_rate": 0.12267657992565056,
-        "attack_rejections": 33,
-        "combat_spells": 537,
-        "completed_fights": 193,
+        "attack_issued": 328,
+        "attack_rejection_rate": 0.13227513227513227,
+        "attack_rejections": 50,
+        "combat_spells": 608,
+        "completed_fights": 266,
         "death_recovery_metric_quality": "state_observer_counter",
         "deaths": 0,
         "event_date": "2026-07-31",
         "handoff_queue_max_ms": 1223021.0,
         "handoff_queue_p95_ms": 272158.59999999986,
         "job_abilities": 0,
-        "proactive_engagements": 138,
-        "reactive_engagements": 98,
-        "recoveries": 11,
-        "target_cycle_errors": 1,
-        "weapon_skills": 130
+        "proactive_engagements": 200,
+        "reactive_engagements": 128,
+        "recoveries": 12,
+        "target_cycle_errors": 2,
+        "weapon_skills": 147
       }
     ],
     "commit_performance": [
@@ -280,14 +280,14 @@
         "supervisor_errors": 0
       },
       {
-        "attack_rejection_rate": 0.14501510574018128,
-        "completed_fights": 436,
+        "attack_rejection_rate": 0.14656290531776914,
+        "completed_fights": 509,
         "first_event_date": "2026-07-30",
-        "git_sha_provenance": "inferred_from_commit_time",
+        "git_sha_provenance": "observed_at_ingestion",
         "last_event_date": "2026-07-31",
-        "mcp_failure_rate": 0.005943443443443443,
-        "mcp_operations": 15984,
-        "navigation_failures": 1,
+        "mcp_failure_rate": 0.005226011529551209,
+        "mcp_operations": 18561,
+        "navigation_failures": 46,
         "source_git_sha": "650ae7c9",
         "supervisor_errors": 1
       },
@@ -354,29 +354,29 @@
     ],
     "data_quality": [
       {
-        "bronze_rows": 64270,
-        "distinct_event_ids": 64270,
+        "bronze_rows": 66847,
+        "distinct_event_ids": 66847,
         "duplicate_event_ids": 0,
         "earliest_event_time": "2026-07-25 17:41:07.588-04",
-        "latest_event_time": "2026-07-31 07:44:31.808-04",
-        "latest_ingested_at": "2026-07-31 08:06:32.378777-04",
+        "latest_event_time": "2026-07-31 09:57:21.757-04",
+        "latest_ingested_at": "2026-07-31 10:05:44.111919-04",
         "latest_session_malformed_rows": 0,
         "latest_session_reconciled": true,
-        "latest_session_valid_rows": 656,
+        "latest_session_valid_rows": 0,
         "null_event_ids": 0,
         "null_event_times": 0,
         "source": "agent_actions"
       },
       {
-        "bronze_rows": 41112,
-        "distinct_event_ids": 41112,
+        "bronze_rows": 44124,
+        "distinct_event_ids": 44124,
         "duplicate_event_ids": 0,
         "earliest_event_time": "2026-07-28 16:00:32.716-04",
-        "latest_event_time": "2026-07-31 07:44:31.82-04",
-        "latest_ingested_at": "2026-07-31 08:06:32.378777-04",
+        "latest_event_time": "2026-07-31 09:57:21.77-04",
+        "latest_ingested_at": "2026-07-31 10:05:44.111919-04",
         "latest_session_malformed_rows": 0,
         "latest_session_reconciled": true,
-        "latest_session_valid_rows": 546,
+        "latest_session_valid_rows": 0,
         "null_event_ids": 0,
         "null_event_times": 0,
         "source": "farm_supervisor"
@@ -396,12 +396,12 @@
         "source": "navigation"
       },
       {
-        "bronze_rows": 168,
-        "distinct_event_ids": 168,
+        "bronze_rows": 172,
+        "distinct_event_ids": 172,
         "duplicate_event_ids": 0,
         "earliest_event_time": "2026-07-30 12:18:09.006675-04",
-        "latest_event_time": "2026-07-31 08:06:33.000563-04",
-        "latest_ingested_at": "2026-07-31 08:06:33.000563-04",
+        "latest_event_time": "2026-07-31 10:07:09.141525-04",
+        "latest_ingested_at": "2026-07-31 10:07:09.141525-04",
         "latest_session_malformed_rows": 0,
         "latest_session_reconciled": true,
         "latest_session_valid_rows": 0,
@@ -416,99 +416,99 @@
         "duration_p95_ms": 89.19999999999999,
         "failed_operations": 16,
         "operation": "enable_control",
-        "operation_count": 17963,
-        "success_rate": 0.9991092801870511,
-        "successful_operations": 17947
+        "operation_count": 18899,
+        "success_rate": 0.9991533943594899,
+        "successful_operations": 18883
       },
       {
         "duration_max_ms": 3005.0,
         "duration_p95_ms": 94.5,
         "failed_operations": 175,
         "operation": "gameplay_command",
-        "operation_count": 11740,
-        "success_rate": 0.9850936967632027,
-        "successful_operations": 11565
+        "operation_count": 12152,
+        "success_rate": 0.9855990783410138,
+        "successful_operations": 11977
       },
       {
         "duration_max_ms": 691.0,
         "duration_p95_ms": 87.89999999999999,
         "failed_operations": 184,
         "operation": "target_entity",
-        "operation_count": 6974,
-        "success_rate": 0.9736162890737023,
-        "successful_operations": 6790
+        "operation_count": 7149,
+        "success_rate": 0.9742621345642747,
+        "successful_operations": 6965
       },
       {
         "duration_max_ms": 205.0,
         "duration_p95_ms": 94.34999999999998,
         "failed_operations": 0,
         "operation": "clear_target",
-        "operation_count": 6636,
+        "operation_count": 6811,
         "success_rate": 1.0,
-        "successful_operations": 6636
+        "successful_operations": 6811
       },
       {
         "duration_max_ms": 1483.0,
         "duration_p95_ms": 401.9999999999961,
-        "failed_operations": 48,
+        "failed_operations": 50,
         "operation": "menu_input",
-        "operation_count": 4950,
-        "success_rate": 0.9903030303030304,
-        "successful_operations": 4902
-      },
-      {
-        "duration_max_ms": 2062.0,
-        "duration_p95_ms": 115.3999999999998,
-        "failed_operations": 15,
-        "operation": "emergency_stop",
-        "operation_count": 4048,
-        "success_rate": 0.9962944664031621,
-        "successful_operations": 4033
+        "operation_count": 4987,
+        "success_rate": 0.9899739322237818,
+        "successful_operations": 4937
       },
       {
         "duration_max_ms": 192.0,
         "duration_p95_ms": 111.19999999999996,
         "failed_operations": 22,
         "operation": "service_teleport",
-        "operation_count": 3721,
-        "success_rate": 0.9940876108572965,
-        "successful_operations": 3699
+        "operation_count": 4255,
+        "success_rate": 0.9948296122209166,
+        "successful_operations": 4233
+      },
+      {
+        "duration_max_ms": 2062.0,
+        "duration_p95_ms": 115.3999999999998,
+        "failed_operations": 15,
+        "operation": "emergency_stop",
+        "operation_count": 4063,
+        "success_rate": 0.9963081466896382,
+        "successful_operations": 4048
       },
       {
         "duration_max_ms": 140.0,
         "duration_p95_ms": 82.75,
         "failed_operations": 0,
         "operation": "stop_movement",
-        "operation_count": 2724,
+        "operation_count": 2853,
         "success_rate": 1.0,
-        "successful_operations": 2724
-      },
-      {
-        "duration_max_ms": 137.0,
-        "duration_p95_ms": 130.0999999999999,
-        "failed_operations": 34,
-        "operation": "move_to_position",
-        "operation_count": 1701,
-        "success_rate": 0.9800117577895355,
-        "successful_operations": 1667
+        "successful_operations": 2853
       },
       {
         "duration_max_ms": 211.0,
         "duration_p95_ms": 78.35,
         "failed_operations": 104,
         "operation": "set_goal_overlay",
-        "operation_count": 1634,
-        "success_rate": 0.9363525091799265,
-        "successful_operations": 1530
+        "operation_count": 1774,
+        "success_rate": 0.9413754227733935,
+        "successful_operations": 1670
+      },
+      {
+        "duration_max_ms": 137.0,
+        "duration_p95_ms": 130.0999999999999,
+        "failed_operations": 34,
+        "operation": "move_to_position",
+        "operation_count": 1715,
+        "success_rate": 0.9801749271137026,
+        "successful_operations": 1681
       },
       {
         "duration_max_ms": 135.0,
         "duration_p95_ms": 80.0,
         "failed_operations": 0,
         "operation": "move_to_entity",
-        "operation_count": 547,
+        "operation_count": 557,
         "success_rate": 1.0,
-        "successful_operations": 547
+        "successful_operations": 557
       },
       {
         "duration_max_ms": 150.0,
@@ -672,11 +672,11 @@
         "collision_probe_success_rate": null,
         "collision_probes": 0,
         "event_date": "2026-07-31",
-        "line_of_sight_nudges": 24,
-        "navigation_failures": 1,
-        "navigation_retries": 97,
+        "line_of_sight_nudges": 38,
+        "navigation_failures": 46,
+        "navigation_retries": 130,
         "partial_progress_probes": 0,
-        "service_teleport_operations": 566,
+        "service_teleport_operations": 1100,
         "stalled_probes": 0,
         "successful_collision_probes": 0,
         "zone_transitions": 0
@@ -714,6 +714,7 @@
         "placeholder": "Forest Hare",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Jaggedy-Eared_Jack",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/West_Ronfaure/mobs/Forest_Hare.lua",
         "script_default_chance_percent": 9,
@@ -724,7 +725,7 @@
       {
         "cooldown_opens_at": null,
         "cooldown_remaining_seconds": null,
-        "data_quality": "not_observed",
+        "data_quality": "recorded_defeat_only",
         "display_name": "Spiny Spipi",
         "effective_chance_percent": null,
         "effective_cooldown_seconds": null,
@@ -733,7 +734,7 @@
         "image_width": 512,
         "is_primed": null,
         "is_spawned": null,
-        "last_observed_kill_at": null,
+        "last_observed_kill_at": "2026-07-30T11:54:13.759000+00:00",
         "last_observed_status": null,
         "next_lottery_opportunity_at": null,
         "nm_key": "spiny-spipi",
@@ -741,6 +742,7 @@
         "placeholder": "Crawler",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Spiny_Spipi",
+        "recorded_defeat_count": 1,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/East_Sarutabaruta/mobs/Crawler.lua",
         "script_default_chance_percent": 10,
@@ -768,6 +770,7 @@
         "placeholder": "Savanna Rarab",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Sharp-Eared_Ropipi",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/East_Sarutabaruta/mobs/Savanna_Rarab.lua",
         "script_default_chance_percent": 20,
@@ -778,7 +781,7 @@
       {
         "cooldown_opens_at": null,
         "cooldown_remaining_seconds": null,
-        "data_quality": "not_observed",
+        "data_quality": "recorded_defeat_only",
         "display_name": "Leaping Lizzy",
         "effective_chance_percent": null,
         "effective_cooldown_seconds": null,
@@ -787,7 +790,7 @@
         "image_width": 368,
         "is_primed": null,
         "is_spawned": null,
-        "last_observed_kill_at": null,
+        "last_observed_kill_at": "2026-07-31T13:49:07.663000+00:00",
         "last_observed_status": null,
         "next_lottery_opportunity_at": null,
         "nm_key": "leaping-lizzy",
@@ -795,6 +798,7 @@
         "placeholder": "Rock Lizard",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Leaping_Lizzy",
+        "recorded_defeat_count": 4,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/South_Gustaberg/mobs/Rock_Lizard.lua",
         "script_default_chance_percent": 10,
@@ -805,7 +809,7 @@
       {
         "cooldown_opens_at": null,
         "cooldown_remaining_seconds": null,
-        "data_quality": "not_observed",
+        "data_quality": "recorded_defeat_only",
         "display_name": "Stinging Sophie",
         "effective_chance_percent": null,
         "effective_cooldown_seconds": null,
@@ -814,7 +818,7 @@
         "image_width": 123,
         "is_primed": null,
         "is_spawned": null,
-        "last_observed_kill_at": null,
+        "last_observed_kill_at": "2026-07-31T13:17:00.851000+00:00",
         "last_observed_status": null,
         "next_lottery_opportunity_at": null,
         "nm_key": "stinging-sophie",
@@ -822,6 +826,7 @@
         "placeholder": "Maneating Hornet",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Stinging_Sophie",
+        "recorded_defeat_count": 2,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/North_Gustaberg/mobs/Maneating_Hornet.lua",
         "script_default_chance_percent": 5,
@@ -849,6 +854,7 @@
         "placeholder": "Ornery Sheep",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Carnero",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/South_Gustaberg/mobs/Ornery_Sheep.lua",
         "script_default_chance_percent": 10,
@@ -876,6 +882,7 @@
         "placeholder": "Walking Sapling",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Maighdean_Uaine",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/North_Gustaberg/mobs/Walking_Sapling.lua",
         "script_default_chance_percent": 5,
@@ -886,7 +893,7 @@
       {
         "cooldown_opens_at": null,
         "cooldown_remaining_seconds": null,
-        "data_quality": "not_observed",
+        "data_quality": "recorded_defeat_only",
         "display_name": "Valkurm Emperor",
         "effective_chance_percent": null,
         "effective_cooldown_seconds": null,
@@ -895,7 +902,7 @@
         "image_width": 500,
         "is_primed": null,
         "is_spawned": null,
-        "last_observed_kill_at": null,
+        "last_observed_kill_at": "2026-07-31T13:44:00.875000+00:00",
         "last_observed_status": null,
         "next_lottery_opportunity_at": null,
         "nm_key": "valkurm-emperor",
@@ -903,6 +910,7 @@
         "placeholder": "Damselfly",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Valkurm_Emperor",
+        "recorded_defeat_count": 2,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Valkurm_Dunes/mobs/Damselfly.lua",
         "script_default_chance_percent": 10,
@@ -930,6 +938,7 @@
         "placeholder": "Giant Bat",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Golden_Bat",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Valkurm_Dunes/mobs/Giant_Bat.lua",
         "script_default_chance_percent": 5,
@@ -957,6 +966,7 @@
         "placeholder": "Shoal Pugil",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Buburimboo",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Buburimu_Peninsula/mobs/Shoal_Pugil.lua",
         "script_default_chance_percent": 10,
@@ -984,6 +994,7 @@
         "placeholder": "Zu",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Helldiver",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Buburimu_Peninsula/mobs/Zu.lua",
         "script_default_chance_percent": 10,
@@ -1011,6 +1022,7 @@
         "placeholder": "Mad Sheep",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Stray_Mary",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Konschtat_Highlands/mobs/Mad_Sheep.lua",
         "script_default_chance_percent": 5,
@@ -1038,6 +1050,7 @@
         "placeholder": "Tremor Ram",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Rampaging_Ram",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Konschtat_Highlands/mobs/Tremor_Ram.lua",
         "script_default_chance_percent": 10,
@@ -1065,6 +1078,7 @@
         "placeholder": "Poison Funguar",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Tumbling_Truffle",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/La_Theine_Plateau/mobs/Poison_Funguar.lua",
         "script_default_chance_percent": 5,
@@ -1092,6 +1106,7 @@
         "placeholder": "Battering Ram",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Lumbering_Lambert",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/La_Theine_Plateau/mobs/Battering_Ram.lua",
         "script_default_chance_percent": 10,
@@ -1119,6 +1134,7 @@
         "placeholder": "Lumbering Lambert",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Bloodtear_Baldurf",
+        "recorded_defeat_count": 0,
         "rule_kind": "hq_lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/La_Theine_Plateau/mobs/Lumbering_Lambert.lua",
         "script_default_chance_percent": 10,
@@ -1146,6 +1162,7 @@
         "placeholder": "Tabar Beak",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Deadly_Dodo",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Sauromugue_Champaign/mobs/Tabar_Beak.lua",
         "script_default_chance_percent": 33,
@@ -1173,6 +1190,7 @@
         "placeholder": "Torama",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Ose",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Labyrinth_of_Onzozo/mobs/Torama.lua",
         "script_default_chance_percent": 5,
@@ -1200,6 +1218,7 @@
         "placeholder": "Flying Manta",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Lord_of_Onzozo",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Labyrinth_of_Onzozo/mobs/Flying_Manta.lua",
         "script_default_chance_percent": 4,
@@ -1227,6 +1246,7 @@
         "placeholder": "Devil Manta",
         "placeholder_status": "unknown",
         "profile_url": "https://ffxiclopedia.fandom.com/wiki/Charybdis",
+        "recorded_defeat_count": 0,
         "rule_kind": "lottery",
         "rule_source_url": "https://github.com/LandSandBoat/server/blob/a7d4c3c05d4d37b743cce6f058195bd660244d7f/scripts/zones/Sea_Serpent_Grotto/mobs/Devil_Manta.lua",
         "script_default_chance_percent": 10,
@@ -1267,9 +1287,9 @@
         "zone_transitions": 8
       },
       {
-        "completed_fights": 193,
+        "completed_fights": 266,
         "event_date": "2026-07-31",
-        "exp_earned": 28942,
+        "exp_earned": 29122,
         "exp_metric_quality": "state_observer_counter",
         "maximum_level_reached": 40,
         "objective_milestones": 0,
@@ -1279,13 +1299,13 @@
     ],
     "progression_current": [
       {
-        "elapsed_seconds": 452,
-        "lease_exp_earned": 240,
-        "lease_exp_per_active_hour": 1911.504424778761,
-        "lease_gil_earned": 81,
-        "lease_gil_per_active_hour": 645.1327433628319,
-        "metric_quality": "baseline_only",
-        "observed_at": "2026-07-31 08:06:33.000563-04"
+        "elapsed_seconds": 2318,
+        "lease_exp_earned": 180,
+        "lease_exp_per_active_hour": 279.5513373597929,
+        "lease_gil_earned": 0,
+        "lease_gil_per_active_hour": 0.0,
+        "metric_quality": "idle_interval",
+        "observed_at": "2026-07-31 10:07:09.141525-04"
       }
     ],
     "progression_velocity": [
@@ -1326,6 +1346,18 @@
         "period_start": "2026-07-30 21:00:00-04"
       },
       {
+        "active_seconds": 163,
+        "exp_earned": 0,
+        "exp_per_active_hour": 0.0,
+        "gil_earned": 0,
+        "gil_per_active_hour": 0.0,
+        "is_complete": true,
+        "observed_intervals": 1,
+        "period_end": "2026-07-31 10:00:00-04",
+        "period_grain": "hour",
+        "period_start": "2026-07-31 09:00:00-04"
+      },
+      {
         "active_seconds": 2840,
         "exp_earned": 5729,
         "exp_per_active_hour": 7262.112676056338,
@@ -1338,27 +1370,39 @@
         "period_start": "2026-07-30 00:00:00-04"
       },
       {
-        "active_seconds": 2840,
-        "exp_earned": 5729,
-        "exp_per_active_hour": 7262.112676056338,
+        "active_seconds": 163,
+        "exp_earned": 0,
+        "exp_per_active_hour": 0.0,
         "gil_earned": 0,
         "gil_per_active_hour": 0.0,
         "is_complete": false,
-        "observed_intervals": 94,
+        "observed_intervals": 1,
+        "period_end": "2026-08-01 00:00:00-04",
+        "period_grain": "day",
+        "period_start": "2026-07-31 00:00:00-04"
+      },
+      {
+        "active_seconds": 3003,
+        "exp_earned": 5729,
+        "exp_per_active_hour": 6867.932067932068,
+        "gil_earned": 0,
+        "gil_per_active_hour": 0.0,
+        "is_complete": false,
+        "observed_intervals": 95,
         "period_end": "2026-08-03 00:00:00-04",
         "period_grain": "week",
         "period_start": "2026-07-27 00:00:00-04"
       }
     ]
   },
-  "generated_at": "2026-07-31T13:01:53.774222+00:00",
+  "generated_at": "2026-07-31T14:23:15.707885+00:00",
   "metric_notes": {
     "deaths_recoveries": "Available only for state-observer-covered periods.",
     "exp_earned": "EXP trends use consecutive state-observer counter deltas; historical fight events have no EXP delta.",
     "gil_earned": "Gil trends use consecutive state-observer counter deltas; historical fight events have no gil delta.",
     "git_attribution": "Historical SHAs are inferred from commit time; future collection observes HEAD at ingestion.",
     "job": "Unavailable in the current event and state contracts.",
-    "nm_status": "NM state is a direct hourly map observation when available. Unknown and stale states are never converted into inferred eligibility. Script chance and cooldown values are reference defaults, not observed effective server settings.",
+    "nm_status": "NM state is a direct hourly map observation when available. Unknown and stale states are never converted into inferred eligibility. Script chance and cooldown values are reference defaults, not observed effective server settings. Recorded defeat counts and timestamps come from allowlisted supervisor fight-complete events and do not imply current spawn or lottery state.",
     "progression_velocity": "Per-active-hour rates divide summed counter deltas by summed supervisor elapsed-time deltas. Rates are never summed. Intervals with counter resets, non-positive active time, or observation gaps over 75 minutes are excluded.",
     "teleport_dependency": "Service-teleport operation count is a proxy; event causality is unavailable."
   },
@@ -1369,5 +1413,5 @@
     "contains_raw_payloads": false,
     "git_shas_truncated": true
   },
-  "schema_version": 3
+  "schema_version": 4
 }
