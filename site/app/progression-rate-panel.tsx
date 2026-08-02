@@ -1,7 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { PUBLIC_TELEMETRY_SNAPSHOT_URL } from "./live-config";
+import { useEffect, useMemo, useState } from "react";
 
 export type ProgressionGrain = "hour" | "day" | "week";
 
@@ -38,16 +37,7 @@ export type ProgressionSnapshot = {
 
 type MetricKey = "exp" | "gil";
 
-const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 const STALE_AFTER_MS = 90 * 60 * 1000;
-const FORBIDDEN_KEYS = new Set([
-  "agent_id",
-  "lease_id",
-  "raw_json",
-  "raw_payload",
-  "stream_key",
-  "bridge_token",
-]);
 
 const grains: Array<{ value: ProgressionGrain; label: string }> = [
   { value: "hour", label: "Hour" },
@@ -145,95 +135,20 @@ function RateChart({
   );
 }
 
-function isProgressionSnapshot(value: unknown): value is ProgressionSnapshot {
-  if (!value || typeof value !== "object") return false;
-  const candidate = value as Partial<ProgressionSnapshot>;
-  return (
-    typeof candidate.generated_at === "string" &&
-    !!candidate.datasets &&
-    Array.isArray(candidate.datasets.progression_current) &&
-    Array.isArray(candidate.datasets.progression_velocity)
-  );
-}
-
-function containsForbiddenKeys(value: unknown): boolean {
-  if (Array.isArray(value)) return value.some(containsForbiddenKeys);
-  if (!value || typeof value !== "object") return false;
-  return Object.entries(value).some(
-    ([key, nested]) =>
-      FORBIDDEN_KEYS.has(key.toLowerCase()) || containsForbiddenKeys(nested),
-  );
-}
-
-function isSafePublicSnapshot(value: unknown): value is ProgressionSnapshot {
-  if (!isProgressionSnapshot(value)) return false;
-  const snapshot = value as ProgressionSnapshot & {
-    privacy?: Record<string, unknown>;
-  };
-  return (
-    snapshot.privacy?.classification === "public_aggregate" &&
-    snapshot.privacy?.contains_raw_payloads === false &&
-    snapshot.privacy?.contains_agent_ids === false &&
-    snapshot.privacy?.contains_lease_ids === false &&
-    !containsForbiddenKeys(snapshot.datasets)
-  );
-}
-
 export function ProgressionRatePanel({
-  initialSnapshot,
+  snapshot,
 }: {
-  initialSnapshot: ProgressionSnapshot;
+  snapshot: ProgressionSnapshot;
 }) {
   const [grain, setGrain] = useState<ProgressionGrain>("hour");
-  const [snapshot, setSnapshot] = useState(initialSnapshot);
-  const [refreshState, setRefreshState] = useState<"ready" | "refreshing" | "offline">(
-    "ready",
-  );
-  const [now, setNow] = useState(() =>
-    dateFromSnapshot(initialSnapshot.generated_at).getTime(),
-  );
-
-  const refresh = useCallback(async () => {
-    if (!PUBLIC_TELEMETRY_SNAPSHOT_URL) return;
-    setRefreshState("refreshing");
-    try {
-      const url = new URL(PUBLIC_TELEMETRY_SNAPSHOT_URL);
-      url.searchParams.set("v", String(Math.floor(Date.now() / 300_000)));
-      const response = await fetch(url, {
-        cache: "no-store",
-        headers: { accept: "application/json" },
-      });
-      if (!response.ok) throw new Error("telemetry refresh failed");
-      const candidate: unknown = await response.json();
-      if (!isSafePublicSnapshot(candidate)) {
-        throw new Error("telemetry response failed its contract");
-      }
-      setSnapshot(candidate);
-      setRefreshState("ready");
-    } catch {
-      setRefreshState("offline");
-    } finally {
-      setNow(Date.now());
-    }
-  }, []);
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
-    const initialRefresh = window.setTimeout(() => void refresh(), 0);
-    const refreshTimer = window.setInterval(refresh, REFRESH_INTERVAL_MS);
     const ageTimer = window.setInterval(() => setNow(Date.now()), 60_000);
-    const refreshWhenVisible = () => {
-      if (document.visibilityState === "visible") void refresh();
-    };
-    document.addEventListener("visibilitychange", refreshWhenVisible);
-    window.addEventListener("focus", refreshWhenVisible);
     return () => {
-      window.clearTimeout(initialRefresh);
-      window.clearInterval(refreshTimer);
       window.clearInterval(ageTimer);
-      document.removeEventListener("visibilitychange", refreshWhenVisible);
-      window.removeEventListener("focus", refreshWhenVisible);
     };
-  }, [refresh]);
+  }, []);
 
   const rows = snapshot.datasets.progression_velocity;
   const selected = useMemo(
@@ -283,11 +198,7 @@ export function ProgressionRatePanel({
         <span>
           {stale
             ? "The local feed is stale; the last verified values remain visible."
-            : refreshState === "offline"
-              ? "Live endpoint unavailable; showing the last verified snapshot."
-              : refreshState === "refreshing"
-                ? "Checking for a newer hourly snapshot…"
-                : "Hourly public feed verified."}
+            : "Hourly public feed verified."}
         </span>
       </div>
 

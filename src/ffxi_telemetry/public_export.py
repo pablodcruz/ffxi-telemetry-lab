@@ -9,6 +9,10 @@ from typing import Dict, List, Optional
 import duckdb
 
 from .nm_snapshot import build_public_nm_datasets
+from .public_contract import (
+    PUBLIC_SCHEMA_VERSION,
+    build_dashboard_contract,
+)
 
 PUBLIC_QUERIES = {
     "progress_daily": """
@@ -255,9 +259,10 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
         (row["latest_event_time"] for row in quality if row["latest_event_time"]),
         default=None,
     )
+    generated_at = dt.datetime.now(dt.timezone.utc).isoformat()
     return {
-        "schema_version": 4,
-        "generated_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "schema_version": PUBLIC_SCHEMA_VERSION,
+        "generated_at": generated_at,
         "privacy": {
             "classification": "public_aggregate",
             "contains_raw_payloads": False,
@@ -300,6 +305,7 @@ def build_public_snapshot(duckdb_path: Path) -> Dict[str, object]:
                 "events and do not imply current spawn or lottery state."
             ),
         },
+        "dashboard_contract": build_dashboard_contract(datasets),
         "datasets": datasets,
     }
 
@@ -327,5 +333,6 @@ def export_public_snapshot(
         "output": str(destination),
         "site_output": str(site_destination) if site_destination else None,
         "generated_at": snapshot["generated_at"],
+        "dashboard_contract": snapshot["dashboard_contract"],
         "datasets": {name: len(rows) for name, rows in snapshot["datasets"].items()},
     }

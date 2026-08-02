@@ -12,7 +12,6 @@ import {
   type PointerEvent,
 } from "react";
 import catalog from "../public/data/nm_catalog.json";
-import { PUBLIC_TELEMETRY_SNAPSHOT_URL } from "./live-config";
 
 type NmStatus =
   | "spawned"
@@ -71,7 +70,6 @@ export type NmSnapshot = {
   };
 };
 
-const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
 const catalogRows = catalog.nms as NmCatalogRow[];
 
 const statusLabels: Record<NmStatus, string> = {
@@ -242,8 +240,7 @@ function NmCard({ row, index }: { row: NmStatusRow; index: number }) {
   );
 }
 
-export function NmCarousel({ initialSnapshot }: { initialSnapshot: NmSnapshot }) {
-  const [snapshot, setSnapshot] = useState(initialSnapshot);
+export function NmCarousel({ snapshot }: { snapshot: NmSnapshot }) {
   const [now, setNow] = useState(() => Date.now());
   const [activeIndex, setActiveIndex] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
@@ -262,28 +259,12 @@ export function NmCarousel({ initialSnapshot }: { initialSnapshot: NmSnapshot })
   }, [snapshot]);
   const observer = snapshot.datasets.nm_observer?.[0] ?? observerFallback();
 
-  const refresh = useCallback(async () => {
-    try {
-      const response = await fetch(PUBLIC_TELEMETRY_SNAPSHOT_URL, {
-        cache: "no-store",
-      });
-      if (!response.ok) return;
-      const next = (await response.json()) as NmSnapshot;
-      if (next.datasets?.nm_status?.length === 20) setSnapshot(next);
-    } catch {
-      // Keep the last reviewed aggregate snapshot when the network is unavailable.
-    }
-    setNow(Date.now());
-  }, []);
-
   useEffect(() => {
-    const initialRefresh = window.setTimeout(() => void refresh(), 0);
-    const interval = window.setInterval(refresh, REFRESH_INTERVAL_MS);
+    const interval = window.setInterval(() => setNow(Date.now()), 60_000);
     return () => {
-      window.clearTimeout(initialRefresh);
       window.clearInterval(interval);
     };
-  }, [refresh]);
+  }, []);
 
   const move = useCallback((direction: -1 | 1) => {
     const track = trackRef.current;

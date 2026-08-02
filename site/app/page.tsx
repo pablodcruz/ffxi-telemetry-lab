@@ -59,7 +59,14 @@ type DataQualityRow = {
 };
 
 type DashboardSnapshot = {
+  schema_version: number;
   generated_at: string;
+  dashboard_contract?: {
+    version?: number;
+    required_datasets?: string[];
+    dataset_row_counts?: Record<string, number>;
+    single_snapshot?: boolean;
+  };
   coverage?: {
     earliest_event_time?: string | null;
     latest_event_time?: string | null;
@@ -89,6 +96,18 @@ const FORBIDDEN_KEYS = new Set([
   "stream_key",
   "bridge_token",
 ]);
+const REQUIRED_DASHBOARD_DATASETS = [
+  "progress_daily",
+  "progression_velocity",
+  "progression_current",
+  "combat_daily",
+  "navigation_daily",
+  "mcp_operations",
+  "commit_performance",
+  "data_quality",
+  "nm_status",
+  "nm_observer",
+] as const;
 
 const initialDashboardSnapshot = publicSnapshot as unknown as DashboardSnapshot;
 
@@ -98,11 +117,6 @@ const sourceLabels: Record<string, string> = {
   navigation: "Navigation probes",
   state_snapshot: "State snapshots",
 };
-
-const initialProgressionSnapshot =
-  publicSnapshot as unknown as ProgressionSnapshot;
-
-const initialNmSnapshot = publicSnapshot as unknown as NmSnapshot;
 
 function sum<T>(rows: T[], select: (row: T) => number) {
   return rows.reduce((total, row) => total + (select(row) || 0), 0);
@@ -161,8 +175,17 @@ function containsForbiddenKeys(value: unknown): boolean {
 function isSafeDashboardSnapshot(value: unknown): value is DashboardSnapshot {
   if (!value || typeof value !== "object") return false;
   const candidate = value as DashboardSnapshot;
+  const rowCounts = candidate.dashboard_contract?.dataset_row_counts;
+  const completeContract = REQUIRED_DASHBOARD_DATASETS.every((name) => {
+    const rows = candidate.datasets?.[name];
+    return Array.isArray(rows) && rows.length === rowCounts?.[name];
+  });
   return (
+    candidate.schema_version >= 5 &&
     typeof candidate.generated_at === "string" &&
+    candidate.dashboard_contract?.version === 1 &&
+    candidate.dashboard_contract?.single_snapshot === true &&
+    completeContract &&
     candidate.privacy?.classification === "public_aggregate" &&
     candidate.privacy?.contains_raw_payloads === false &&
     candidate.privacy?.contains_agent_ids === false &&
@@ -563,7 +586,7 @@ export default function Home() {
       </section>
 
       <div className="dashboard-body section-shell">
-        <NmCarousel initialSnapshot={initialNmSnapshot} />
+        <NmCarousel snapshot={snapshot as unknown as NmSnapshot} />
 
         <section className="panel progression" id="progression">
           <div className="section-heading">
@@ -624,7 +647,7 @@ export default function Home() {
             </aside>
           </div>
 
-          <ProgressionRatePanel initialSnapshot={initialProgressionSnapshot} />
+          <ProgressionRatePanel snapshot={snapshot as unknown as ProgressionSnapshot} />
 
           <aside className="coverage-callout">
             <span>Coverage note</span>

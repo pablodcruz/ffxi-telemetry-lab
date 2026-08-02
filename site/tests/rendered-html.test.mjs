@@ -54,12 +54,13 @@ test("server-renders the public telemetry dashboard", async () => {
 });
 
 test("source contains only the finished dashboard experience", async () => {
-  const [layout, page, css, liveConfig, nmCarousel, nmCatalog, packageJson, hostingJson] = await Promise.all([
+  const [layout, page, css, liveConfig, nmCarousel, progressionPanel, nmCatalog, packageJson, hostingJson] = await Promise.all([
     readFile(new URL("app/layout.tsx", siteRoot), "utf8"),
     readFile(new URL("app/page.tsx", siteRoot), "utf8"),
     readFile(new URL("app/globals.css", siteRoot), "utf8"),
     readFile(new URL("app/live-config.ts", siteRoot), "utf8"),
     readFile(new URL("app/nm-carousel.tsx", siteRoot), "utf8"),
+    readFile(new URL("app/progression-rate-panel.tsx", siteRoot), "utf8"),
     readFile(new URL("public/data/nm_catalog.json", siteRoot), "utf8"),
     readFile(new URL("package.json", siteRoot), "utf8"),
     readFile(new URL(".openai/hosting.json", siteRoot), "utf8"),
@@ -74,7 +75,10 @@ test("source contains only the finished dashboard experience", async () => {
   assert.doesNotMatch(page, /value="47,094"/);
   assert.match(page, /ProgressionRatePanel/);
   assert.match(page, /Hourly refresh/);
-  assert.match(page, /initialProgressionSnapshot/);
+  assert.match(page, /dashboard_contract/);
+  assert.match(page, /REQUIRED_DASHBOARD_DATASETS/);
+  assert.match(page, /snapshot={snapshot as unknown as ProgressionSnapshot}/);
+  assert.match(page, /snapshot={snapshot as unknown as NmSnapshot}/);
   assert.match(page, /NmCarousel/);
   assert.match(page, /No raw payloads, agent IDs, lease IDs/);
   assert.match(page, /Historical Git attribution is inferred/);
@@ -88,6 +92,8 @@ test("source contains only the finished dashboard experience", async () => {
   assert.match(nmCarousel, /onClickCapture={onClickCapture}/);
   assert.match(nmCarousel, /Recorded defeats/);
   assert.match(nmCarousel, /recorded_defeat_count/);
+  assert.doesNotMatch(nmCarousel, /PUBLIC_TELEMETRY_SNAPSHOT_URL/);
+  assert.doesNotMatch(progressionPanel, /PUBLIC_TELEMETRY_SNAPSHOT_URL/);
   assert.equal(JSON.parse(nmCatalog).nms.length, 20);
   assert.match(liveConfig, /https:\/\/.*\.public\.blob\.vercel-storage\.com/);
   assert.doesNotMatch(packageJson, /react-loading-skeleton/);

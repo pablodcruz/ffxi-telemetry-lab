@@ -211,6 +211,19 @@ aggregate contract, and overwrites one public Vercel Blob JSON object. Raw
 telemetry never leaves the local machine. A publishing failure cannot stop the
 observer or gameplay.
 
+`refresh-public` is the complete dashboard update boundary. It publishes one
+schema-versioned snapshot containing progression, EXP/gil velocity, combat,
+navigation, MCP reliability, Git-commit performance, data quality, and all 20
+NM cards. Before upload it rejects missing datasets, missing required fields,
+unexpected row counts, a mismatched contract manifest, or a snapshot generated
+more than 20 minutes earlier. After upload it downloads the cache-busted Blob,
+checks the exact SHA-256 bytes, and reruns the privacy and dashboard contracts.
+The command exits unsuccessfully instead of publishing a partial dashboard.
+
+Every browser section consumes that same fetched snapshot. The NM carousel and
+EXP/gil panel do not run independent fetch loops, so panels cannot silently show
+different publication generations.
+
 After creating a public Blob store for the linked Vercel project, pull its
 ignored environment values into `.env.vercel`. Schedule `refresh-public` with a
 local task runner that can read the configured source root. The current

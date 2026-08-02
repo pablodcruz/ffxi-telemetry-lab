@@ -8,8 +8,9 @@ def test_public_export_writes_identical_dashboard_and_site_snapshots(
     monkeypatch,
 ) -> None:
     snapshot = {
-        "schema_version": 4,
+        "schema_version": 5,
         "generated_at": "2026-07-30T19:17:52+00:00",
+        "dashboard_contract": {"version": 1},
         "datasets": {"progression_velocity": [{"period_grain": "hour"}]},
     }
     monkeypatch.setattr(public_export, "build_public_snapshot", lambda _: snapshot)

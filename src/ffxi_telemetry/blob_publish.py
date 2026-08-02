@@ -1,12 +1,16 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import time
 import uuid
 from pathlib import Path
 from typing import Dict, Optional
 
 import httpx
+
+from .public_contract import validate_dashboard_contract
 
 FORBIDDEN_PUBLIC_KEYS = {
     "agent_id",
@@ -18,7 +22,7 @@ FORBIDDEN_PUBLIC_KEYS = {
 }
 
 
-def validate_public_snapshot(snapshot: Dict[str, object]) -> None:
+def validate_public_snapshot(snapshot: Dict[str, object]) -> Dict[str, int]:
     privacy = snapshot.get("privacy")
     if not isinstance(privacy, dict):
         raise ValueError("public snapshot is missing its privacy contract")
@@ -43,6 +47,33 @@ def validate_public_snapshot(snapshot: Dict[str, object]) -> None:
                 inspect(nested)
 
     inspect(snapshot.get("datasets"))
+    return validate_dashboard_contract(snapshot)
+
+
+def _verify_uploaded_snapshot(url: str, expected: bytes) -> None:
+    expected_digest = hashlib.sha256(expected).digest()
+    last_status: Optional[int] = None
+    for attempt in range(6):
+        separator = "&" if "?" in url else "?"
+        verification_url = f"{url}{separator}verify={uuid.uuid4().hex}"
+        response = httpx.get(
+            verification_url,
+            headers={"accept": "application/json", "cache-control": "no-cache"},
+            timeout=30,
+        )
+        last_status = response.status_code
+        if not response.is_error and hashlib.sha256(response.content).digest() == expected_digest:
+            remote = response.json()
+            if not isinstance(remote, dict):
+                raise RuntimeError("Vercel Blob verification did not return an object")
+            validate_public_snapshot(remote)
+            return
+        if attempt < 5:
+            time.sleep(min(0.5 * (2**attempt), 5.0))
+
+    if last_status is not None and last_status >= 400:
+        raise RuntimeError(f"Vercel Blob verification failed with HTTP {last_status}")
+    raise RuntimeError("Vercel Blob verification returned a different snapshot")
 
 
 def publish_public_snapshot(
@@ -54,7 +85,7 @@ def publish_public_snapshot(
     snapshot = json.loads(raw)
     if not isinstance(snapshot, dict):
         raise ValueError("public snapshot root must be an object")
-    validate_public_snapshot(snapshot)
+    dataset_rows = validate_public_snapshot(snapshot)
 
     resolved_token = token or os.getenv("BLOB_READ_WRITE_TOKEN")
     if not resolved_token:
@@ -86,9 +117,13 @@ def publish_public_snapshot(
     url = uploaded.get("url")
     if not url:
         raise RuntimeError("Vercel Blob upload did not return a public URL")
+    _verify_uploaded_snapshot(str(url), raw)
     return {
         "pathname": pathname,
         "url": str(url),
         "bytes": len(raw),
+        "sha256": hashlib.sha256(raw).hexdigest(),
+        "verified_remote": True,
+        "dataset_rows": dataset_rows,
         "generated_at": snapshot.get("generated_at"),
     }
