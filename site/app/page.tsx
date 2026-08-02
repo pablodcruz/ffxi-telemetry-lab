@@ -1,30 +1,96 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TelemetryField } from "./telemetry-field";
 import { NmCarousel, type NmSnapshot } from "./nm-carousel";
 import {
   ProgressionRatePanel,
   type ProgressionSnapshot,
 } from "./progression-rate-panel";
+import { PUBLIC_TELEMETRY_SNAPSHOT_URL } from "./live-config";
 import publicSnapshot from "../public/data/public_snapshot.json";
 
-const dailyFights = [
-  { day: "Jul 28", value: 68, height: 10 },
-  { day: "Jul 29", value: 707, height: 100 },
-  { day: "Jul 30", value: 470, height: 66.5 },
-];
+type CombatDailyRow = {
+  event_date: string;
+  completed_fights: number;
+  proactive_engagements: number;
+  reactive_engagements: number;
+  attack_issued: number;
+  attack_rejections: number;
+  attack_rejection_rate: number | null;
+  target_cycle_errors: number;
+  weapon_skills: number;
+  job_abilities: number;
+  combat_spells: number;
+};
 
-const combatDays = [
-  { day: "Jul 28", rate: 30.2, fights: 68 },
-  { day: "Jul 29", rate: 22.6, fights: 707 },
-  { day: "Jul 30", rate: 21.7, fights: 470 },
-];
+type NavigationDailyRow = {
+  event_date: string;
+  camp_relocations: number;
+  zone_transitions: number;
+  line_of_sight_nudges: number;
+  collision_probes: number;
+  successful_collision_probes: number;
+  partial_progress_probes: number;
+  stalled_probes: number;
+  service_teleport_operations: number;
+};
 
-const operations = [
-  { name: "enable_control", count: 12219, success: "99.88%", volume: 100 },
-  { name: "gameplay_command", count: 7962, success: "97.94%", volume: 65.2 },
-  { name: "target_entity", count: 5422, success: "96.85%", volume: 44.4 },
-  { name: "clear_target", count: 5096, success: "100%", volume: 41.7 },
-  { name: "emergency_stop", count: 3650, success: "99.62%", volume: 29.9 },
-];
+type McpOperationRow = {
+  operation: string;
+  operation_count: number;
+  successful_operations: number;
+  failed_operations: number;
+  success_rate: number | null;
+};
+
+type ProgressDailyRow = {
+  event_date: string;
+  target_levels_reached: number;
+  objective_milestones: number;
+};
+
+type DataQualityRow = {
+  source: string;
+  bronze_rows: number;
+  duplicate_event_ids: number;
+  latest_session_malformed_rows: number;
+  latest_session_reconciled: boolean;
+};
+
+type DashboardSnapshot = {
+  generated_at: string;
+  coverage?: {
+    earliest_event_time?: string | null;
+    latest_event_time?: string | null;
+  };
+  privacy?: {
+    classification?: string;
+    contains_raw_payloads?: boolean;
+    contains_agent_ids?: boolean;
+    contains_lease_ids?: boolean;
+  };
+  datasets: {
+    combat_daily: CombatDailyRow[];
+    navigation_daily: NavigationDailyRow[];
+    mcp_operations: McpOperationRow[];
+    progress_daily: ProgressDailyRow[];
+    data_quality: DataQualityRow[];
+  } & Record<string, unknown>;
+};
+
+const REFRESH_INTERVAL_MS = 10 * 60 * 1000;
+const STALE_AFTER_MS = 90 * 60 * 1000;
+const FORBIDDEN_KEYS = new Set([
+  "agent_id",
+  "lease_id",
+  "raw_json",
+  "raw_payload",
+  "stream_key",
+  "bridge_token",
+]);
+
+const initialDashboardSnapshot = publicSnapshot as unknown as DashboardSnapshot;
 
 const sourceLabels: Record<string, string> = {
   agent_actions: "Agent actions",
@@ -33,22 +99,82 @@ const sourceLabels: Record<string, string> = {
   state_snapshot: "State snapshots",
 };
 
-const qualityRows = publicSnapshot.datasets.data_quality.map((row) => ({
-  source: sourceLabels[row.source] ?? row.source,
-  rows: row.bronze_rows.toLocaleString("en-US"),
-  malformed: row.latest_session_malformed_rows,
-  status: row.source === "state_snapshot" ? "Observed" : "Reconciled",
-}));
-
-const bronzeRows = publicSnapshot.datasets.data_quality.reduce(
-  (total, row) => total + row.bronze_rows,
-  0,
-);
-
 const initialProgressionSnapshot =
   publicSnapshot as unknown as ProgressionSnapshot;
 
 const initialNmSnapshot = publicSnapshot as unknown as NmSnapshot;
+
+function sum<T>(rows: T[], select: (row: T) => number) {
+  return rows.reduce((total, row) => total + (select(row) || 0), 0);
+}
+
+function formatNumber(value: number) {
+  return Math.round(value).toLocaleString("en-US");
+}
+
+function formatRate(value: number) {
+  return `${(value * 100).toFixed(2)}%`;
+}
+
+function shortDate(value: string) {
+  const date = new Date(`${value}T12:00:00-04:00`);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    timeZone: "America/New_York",
+  });
+}
+
+function snapshotDate(value: string) {
+  const date = new Date(value.replace(" ", "T"));
+  if (Number.isNaN(date.getTime())) return "Snapshot time unavailable";
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    timeZone: "America/New_York",
+    timeZoneName: "short",
+  });
+}
+
+function relativeAge(value: string, now: number) {
+  const timestamp = new Date(value.replace(" ", "T")).getTime();
+  if (!Number.isFinite(timestamp)) return "update time unavailable";
+  const minutes = Math.max(0, Math.round((now - timestamp) / 60_000));
+  if (minutes < 1) return "updated just now";
+  if (minutes < 60) return `updated ${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  return `updated ${hours}h ${minutes % 60}m ago`;
+}
+
+function containsForbiddenKeys(value: unknown): boolean {
+  if (Array.isArray(value)) return value.some(containsForbiddenKeys);
+  if (!value || typeof value !== "object") return false;
+  return Object.entries(value).some(
+    ([key, nested]) =>
+      FORBIDDEN_KEYS.has(key.toLowerCase()) || containsForbiddenKeys(nested),
+  );
+}
+
+function isSafeDashboardSnapshot(value: unknown): value is DashboardSnapshot {
+  if (!value || typeof value !== "object") return false;
+  const candidate = value as DashboardSnapshot;
+  return (
+    typeof candidate.generated_at === "string" &&
+    candidate.privacy?.classification === "public_aggregate" &&
+    candidate.privacy?.contains_raw_payloads === false &&
+    candidate.privacy?.contains_agent_ids === false &&
+    candidate.privacy?.contains_lease_ids === false &&
+    Array.isArray(candidate.datasets?.combat_daily) &&
+    Array.isArray(candidate.datasets?.navigation_daily) &&
+    Array.isArray(candidate.datasets?.mcp_operations) &&
+    Array.isArray(candidate.datasets?.progress_daily) &&
+    Array.isArray(candidate.datasets?.data_quality) &&
+    !containsForbiddenKeys(candidate.datasets)
+  );
+}
 
 function Metric({
   index,
@@ -77,6 +203,184 @@ function Metric({
 }
 
 export default function Home() {
+  const [snapshot, setSnapshot] = useState(initialDashboardSnapshot);
+  const [now, setNow] = useState(() => Date.now());
+  const [refreshState, setRefreshState] = useState<
+    "ready" | "refreshing" | "offline"
+  >("ready");
+
+  const refresh = useCallback(async () => {
+    setRefreshState("refreshing");
+    try {
+      const url = new URL(PUBLIC_TELEMETRY_SNAPSHOT_URL);
+      url.searchParams.set("v", String(Math.floor(Date.now() / 300_000)));
+      const response = await fetch(url, {
+        cache: "no-store",
+        headers: { accept: "application/json" },
+      });
+      if (!response.ok) throw new Error("telemetry refresh failed");
+      const candidate: unknown = await response.json();
+      if (!isSafeDashboardSnapshot(candidate)) {
+        throw new Error("telemetry response failed its privacy contract");
+      }
+      setSnapshot(candidate);
+      setRefreshState("ready");
+    } catch {
+      setRefreshState("offline");
+    } finally {
+      setNow(Date.now());
+    }
+  }, []);
+
+  useEffect(() => {
+    const initialRefresh = window.setTimeout(() => void refresh(), 0);
+    const refreshTimer = window.setInterval(refresh, REFRESH_INTERVAL_MS);
+    const ageTimer = window.setInterval(() => setNow(Date.now()), 60_000);
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") void refresh();
+    };
+    document.addEventListener("visibilitychange", refreshWhenVisible);
+    window.addEventListener("focus", refreshWhenVisible);
+    return () => {
+      window.clearTimeout(initialRefresh);
+      window.clearInterval(refreshTimer);
+      window.clearInterval(ageTimer);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
+      window.removeEventListener("focus", refreshWhenVisible);
+    };
+  }, [refresh]);
+
+  const combatRows = snapshot.datasets.combat_daily;
+  const navigationRows = snapshot.datasets.navigation_daily;
+  const mcpRows = snapshot.datasets.mcp_operations;
+  const progressRows = snapshot.datasets.progress_daily;
+  const qualityRows = snapshot.datasets.data_quality.map((row) => ({
+    source: sourceLabels[row.source] ?? row.source,
+    rows: formatNumber(row.bronze_rows),
+    malformed: row.latest_session_malformed_rows,
+    status: row.latest_session_reconciled
+      ? row.source === "state_snapshot"
+        ? "Observed"
+        : "Reconciled"
+      : "Review",
+  }));
+
+  const dailyFights = useMemo(() => {
+    const recent = combatRows.slice(-7);
+    const maximum = Math.max(...recent.map((row) => row.completed_fights), 1);
+    return recent.map((row) => ({
+      day: shortDate(row.event_date),
+      value: row.completed_fights,
+      height: (row.completed_fights / maximum) * 100,
+    }));
+  }, [combatRows]);
+
+  const combatDays = useMemo(
+    () =>
+      combatRows.slice(-7).map((row) => ({
+        day: shortDate(row.event_date),
+        rate: (row.attack_rejection_rate ?? 0) * 100,
+        fights: row.completed_fights,
+      })),
+    [combatRows],
+  );
+
+  const operations = useMemo(() => {
+    const top = [...mcpRows]
+      .sort((left, right) => right.operation_count - left.operation_count)
+      .slice(0, 5);
+    const maximum = Math.max(...top.map((row) => row.operation_count), 1);
+    return top.map((row) => ({
+      name: row.operation,
+      count: row.operation_count,
+      success: formatRate(row.success_rate ?? 0),
+      volume: (row.operation_count / maximum) * 100,
+    }));
+  }, [mcpRows]);
+
+  const completedFights = sum(combatRows, (row) => row.completed_fights);
+  const proactiveEngagements = sum(
+    combatRows,
+    (row) => row.proactive_engagements,
+  );
+  const reactiveEngagements = sum(
+    combatRows,
+    (row) => row.reactive_engagements,
+  );
+  const targetCycleErrors = sum(combatRows, (row) => row.target_cycle_errors);
+  const weaponSkills = sum(combatRows, (row) => row.weapon_skills);
+  const jobAbilities = sum(combatRows, (row) => row.job_abilities);
+  const combatSpells = sum(combatRows, (row) => row.combat_spells);
+  const combatActions = weaponSkills + jobAbilities + combatSpells;
+  const actionShare = (value: number) =>
+    combatActions > 0 ? (value / combatActions) * 100 : 0;
+
+  const mcpOperations = sum(mcpRows, (row) => row.operation_count);
+  const mcpSuccessful = sum(mcpRows, (row) => row.successful_operations);
+  const mcpFailed = sum(mcpRows, (row) => row.failed_operations);
+  const mcpSuccessRate = mcpOperations > 0 ? mcpSuccessful / mcpOperations : 0;
+
+  const collisionProbes = sum(navigationRows, (row) => row.collision_probes);
+  const collisionArrivals = sum(
+    navigationRows,
+    (row) => row.successful_collision_probes,
+  );
+  const partialProgress = sum(
+    navigationRows,
+    (row) => row.partial_progress_probes,
+  );
+  const stalledProbes = sum(navigationRows, (row) => row.stalled_probes);
+  const probeArrivalRate =
+    collisionProbes > 0 ? collisionArrivals / collisionProbes : 0;
+  const campRelocations = sum(navigationRows, (row) => row.camp_relocations);
+  const zoneTransitions = sum(navigationRows, (row) => row.zone_transitions);
+  const lineOfSightNudges = sum(
+    navigationRows,
+    (row) => row.line_of_sight_nudges,
+  );
+  const teleportOperations = Math.max(
+    ...navigationRows.map((row) => row.service_teleport_operations || 0),
+    0,
+  );
+
+  const bronzeRows = sum(snapshot.datasets.data_quality, (row) => row.bronze_rows);
+  const malformedRows = sum(
+    snapshot.datasets.data_quality,
+    (row) => row.latest_session_malformed_rows,
+  );
+  const duplicateEventIds = sum(
+    snapshot.datasets.data_quality,
+    (row) => row.duplicate_event_ids,
+  );
+  const milestoneEvents = sum(
+    progressRows,
+    (row) => row.target_levels_reached + row.objective_milestones,
+  );
+  const peakFightDay = dailyFights.reduce(
+    (peak, row) => (row.value > peak.value ? row : peak),
+    dailyFights[0] ?? { day: "Collecting", value: 0, height: 0 },
+  );
+  const peakFightIndex = Math.max(
+    0,
+    dailyFights.findIndex((row) => row.day === peakFightDay.day),
+  );
+  const priorPeakDay = dailyFights[peakFightIndex - 1];
+  const peakDelta =
+    priorPeakDay && priorPeakDay.value > 0
+      ? ((peakFightDay.value - priorPeakDay.value) / priorPeakDay.value) * 100
+      : null;
+  const firstCombatRate = combatDays[0]?.rate ?? 0;
+  const latestCombatRate = combatDays.at(-1)?.rate ?? 0;
+  const rejectionDelta = latestCombatRate - firstCombatRate;
+  const snapshotAge = now - new Date(snapshot.generated_at).getTime();
+  const stale = Number.isFinite(snapshotAge) && snapshotAge > STALE_AFTER_MS;
+  const coverageStart = snapshot.coverage?.earliest_event_time;
+  const coverageEnd = snapshot.coverage?.latest_event_time;
+  const coverageLabel =
+    coverageStart && coverageEnd
+      ? `${shortDate(coverageStart.slice(0, 10))}–${shortDate(coverageEnd.slice(0, 10))}, 2026`
+      : "Coverage window unavailable";
+
   return (
     <main>
       <header className="topbar">
@@ -147,18 +451,20 @@ export default function Home() {
               <i />
               <i />
             </div>
-            <span>telemetry-session / 2026-07-30</span>
+            <span>telemetry-session / {snapshotDate(snapshot.generated_at)}</span>
             <span>01</span>
           </div>
           <div className="terminal-score">
             <div className="score-orbit">
-              <span>98.35</span>
+              <span>{(mcpSuccessRate * 100).toFixed(2)}</span>
               <small>%</small>
             </div>
             <div>
               <span className="terminal-label">Control reliability</span>
-              <strong>46,316 successful operations</strong>
-              <small>47,094 total · 778 failed</small>
+              <strong>{formatNumber(mcpSuccessful)} successful operations</strong>
+              <small>
+                {formatNumber(mcpOperations)} total · {formatNumber(mcpFailed)} failed
+              </small>
             </div>
           </div>
           <div className="pipeline">
@@ -192,7 +498,7 @@ export default function Home() {
         </aside>
 
         <div className="hero-meta" aria-label="Snapshot facts">
-          <span>Jul 25–30, 2026</span>
+          <span>{coverageLabel}</span>
           <span>DuckDB · dbt · Parquet</span>
           <span>Gameplay independent</span>
         </div>
@@ -202,29 +508,29 @@ export default function Home() {
         <Metric
           index="01"
           label="Completed fights"
-          value="1,245"
+          value={formatNumber(completedFights)}
           note="Authoritative events"
           tone="acid"
         />
         <Metric
           index="02"
           label="MCP operations"
-          value="47,094"
-          note="98.35% successful"
+          value={formatNumber(mcpOperations)}
+          note={`${formatRate(mcpSuccessRate)} successful`}
           tone="violet"
         />
         <Metric
           index="03"
           label="Probe arrival rate"
-          value="55.1%"
-          note="76 of 138 attempts"
+          value={`${(probeArrivalRate * 100).toFixed(1)}%`}
+          note={`${formatNumber(collisionArrivals)} of ${formatNumber(collisionProbes)} attempts`}
           tone="coral"
         />
         <Metric
           index="04"
           label="Malformed rows"
-          value="0"
-          note="Frozen backfill boundary"
+          value={formatNumber(malformedRows)}
+          note="Latest ingestion session"
           tone="paper"
         />
       </section>
@@ -232,7 +538,9 @@ export default function Home() {
       <section className="signal-strip" aria-label="Pipeline status">
         <div className="section-shell">
           <span>System signal</span>
-          <strong>Independent analytics online</strong>
+          <strong>
+            {stale ? "Public aggregate needs attention" : "Independent analytics online"}
+          </strong>
           <div className="signal-trace" aria-hidden="true">
             <i />
             <i />
@@ -247,7 +555,10 @@ export default function Home() {
             <i />
             <i />
           </div>
-          <small>Hourly refresh · :05 ET</small>
+          <small>
+            {refreshState === "offline" ? "Endpoint unavailable" : "Hourly refresh"}
+            {" · "}{relativeAge(snapshot.generated_at, now)}
+          </small>
         </div>
       </section>
 
@@ -258,11 +569,11 @@ export default function Home() {
           <div className="section-heading">
             <div>
               <span className="kicker">01 / Autonomous progression</span>
-              <h2>Three days.<br />One accelerating agent.</h2>
+              <h2>{dailyFights.length} days.<br />One evolving agent.</h2>
             </div>
             <div className="section-stat">
               <span>Milestone signal</span>
-              <strong>10</strong>
+              <strong>{formatNumber(milestoneEvents)}</strong>
               <small>level + objective events</small>
             </div>
           </div>
@@ -292,12 +603,18 @@ export default function Home() {
               </div>
             </div>
             <aside className="peak-card">
-              <span className="peak-index">PEAK / 02</span>
-              <strong>707</strong>
-              <p>completed fights on Jul 29</p>
+              <span className="peak-index">
+                PEAK / {String(peakFightIndex + 1).padStart(2, "0")}
+              </span>
+              <strong>{formatNumber(peakFightDay.value)}</strong>
+              <p>completed fights on {peakFightDay.day}</p>
               <div className="peak-delta">
-                <span>+939.7%</span>
-                <small>vs. prior day</small>
+                <span>
+                  {peakDelta === null
+                    ? "First observed day"
+                    : `${peakDelta >= 0 ? "+" : ""}${peakDelta.toFixed(1)}%`}
+                </span>
+                <small>{peakDelta === null ? "baseline" : "vs. prior day"}</small>
               </div>
               <div className="peak-rings" aria-hidden="true">
                 <i />
@@ -325,9 +642,11 @@ export default function Home() {
             <div className="section-heading compact">
               <div>
                 <span className="kicker">02 / Combat reliability</span>
-                <h2>Rejection is trending down.</h2>
+                <h2>Attack rejection trend.</h2>
               </div>
-              <span className="direction-chip">↓ 8.5 pts</span>
+              <span className="direction-chip">
+                {rejectionDelta <= 0 ? "↓" : "↑"} {Math.abs(rejectionDelta).toFixed(1)} pts
+              </span>
             </div>
             <div className="rate-list">
               {combatDays.map((point) => (
@@ -336,15 +655,15 @@ export default function Home() {
                   <div className="rate-track">
                     <div className="rate-fill" style={{ width: `${point.rate}%` }} />
                   </div>
-                  <strong>{point.rate}%</strong>
+                  <strong>{point.rate.toFixed(1)}%</strong>
                   <small>{point.fights} fights</small>
                 </div>
               ))}
             </div>
             <div className="mini-metrics">
-              <div><strong>1,509</strong><span>Proactive</span></div>
-              <div><strong>312</strong><span>Reactive</span></div>
-              <div><strong>68</strong><span>Target-cycle errors</span></div>
+              <div><strong>{formatNumber(proactiveEngagements)}</strong><span>Proactive</span></div>
+              <div><strong>{formatNumber(reactiveEngagements)}</strong><span>Reactive</span></div>
+              <div><strong>{formatNumber(targetCycleErrors)}</strong><span>Target-cycle errors</span></div>
             </div>
           </article>
 
@@ -356,18 +675,18 @@ export default function Home() {
               </div>
             </div>
             <div className="action-total">
-              <strong>1,037</strong>
+              <strong>{formatNumber(combatActions)}</strong>
               <span>combat actions</span>
             </div>
             <div className="action-stack" aria-label="Combat action mix">
-              <div className="ws" style={{ width: "50.1%" }} />
-              <div className="ja" style={{ width: "35.1%" }} />
-              <div className="spell" style={{ width: "14.8%" }} />
+              <div className="ws" style={{ width: `${actionShare(weaponSkills)}%` }} />
+              <div className="ja" style={{ width: `${actionShare(jobAbilities)}%` }} />
+              <div className="spell" style={{ width: `${actionShare(combatSpells)}%` }} />
             </div>
             <ul className="legend">
-              <li><span className="dot ws" /> Weapon skills <strong>520</strong></li>
-              <li><span className="dot ja" /> Job abilities <strong>364</strong></li>
-              <li><span className="dot spell" /> Combat spells <strong>153</strong></li>
+              <li><span className="dot ws" /> Weapon skills <strong>{formatNumber(weaponSkills)}</strong></li>
+              <li><span className="dot ja" /> Job abilities <strong>{formatNumber(jobAbilities)}</strong></li>
+              <li><span className="dot spell" /> Combat spells <strong>{formatNumber(combatSpells)}</strong></li>
             </ul>
           </article>
         </section>
@@ -384,17 +703,17 @@ export default function Home() {
               <div
                 className="outcome-ring"
                 role="img"
-                aria-label="Collision probe outcomes: 55.1 percent arrived, 30.4 percent partial progress, 14.5 percent stalled"
+                aria-label={`Collision probe outcomes: ${(probeArrivalRate * 100).toFixed(1)} percent arrived, ${collisionProbes ? ((partialProgress / collisionProbes) * 100).toFixed(1) : "0.0"} percent partial progress, ${collisionProbes ? ((stalledProbes / collisionProbes) * 100).toFixed(1) : "0.0"} percent stalled`}
               >
                 <div>
-                  <strong>55.1%</strong>
+                  <strong>{(probeArrivalRate * 100).toFixed(1)}%</strong>
                   <span>arrived</span>
                 </div>
               </div>
               <ul className="legend outcome-legend">
-                <li><span className="dot arrived" /> Arrived <strong>76</strong></li>
-                <li><span className="dot partial" /> Partial progress <strong>42</strong></li>
-                <li><span className="dot stalled" /> Stalled <strong>20</strong></li>
+                <li><span className="dot arrived" /> Arrived <strong>{formatNumber(collisionArrivals)}</strong></li>
+                <li><span className="dot partial" /> Partial progress <strong>{formatNumber(partialProgress)}</strong></li>
+                <li><span className="dot stalled" /> Stalled <strong>{formatNumber(stalledProbes)}</strong></li>
               </ul>
             </div>
           </article>
@@ -407,10 +726,10 @@ export default function Home() {
               </div>
             </div>
             <div className="signal-grid">
-              <div><span>01</span><strong>275</strong><small>Camp relocations</small></div>
-              <div><span>02</span><strong>10</strong><small>Zone transitions</small></div>
-              <div><span>03</span><strong>89</strong><small>Line-of-sight nudges</small></div>
-              <div><span>04</span><strong>964</strong><small>Teleport operations*</small></div>
+              <div><span>01</span><strong>{formatNumber(campRelocations)}</strong><small>Camp relocations</small></div>
+              <div><span>02</span><strong>{formatNumber(zoneTransitions)}</strong><small>Zone transitions</small></div>
+              <div><span>03</span><strong>{formatNumber(lineOfSightNudges)}</strong><small>Line-of-sight nudges</small></div>
+              <div><span>04</span><strong>{formatNumber(teleportOperations)}</strong><small>Teleport operations*</small></div>
             </div>
             <p className="footnote">
               *Operation count is a dependency proxy. The event stream does not
@@ -427,8 +746,8 @@ export default function Home() {
             </div>
             <div className="section-stat danger-stat">
               <span>Failed operations</span>
-              <strong>778</strong>
-              <small>1.65% of total</small>
+              <strong>{formatNumber(mcpFailed)}</strong>
+              <small>{formatRate(mcpOperations > 0 ? mcpFailed / mcpOperations : 0)} of total</small>
             </div>
           </div>
           <div className="operation-table" role="table" aria-label="Top MCP operations">
@@ -452,13 +771,13 @@ export default function Home() {
           <div className="section-heading">
             <div>
               <span className="kicker">05 / Data quality</span>
-              <h2>Every frozen boundary reconciled.</h2>
+              <h2>Every published boundary reconciled.</h2>
             </div>
-            <div className="quality-badge"><i /> 0 duplicate event IDs</div>
+            <div className="quality-badge"><i /> {formatNumber(duplicateEventIds)} duplicate event IDs</div>
           </div>
           <div className="quality-summary">
-            <div><strong>145</strong><span>frozen source files</span></div>
-            <div><strong>0</strong><span>prefix hash mismatches</span></div>
+            <div><strong>{qualityRows.length}</strong><span>tracked sources</span></div>
+            <div><strong>{formatNumber(bronzeRows)}</strong><span>Bronze events</span></div>
             <div><strong>47/47</strong><span>dbt nodes passed</span></div>
           </div>
           <div className="quality-table" role="table" aria-label="Source reconciliation">

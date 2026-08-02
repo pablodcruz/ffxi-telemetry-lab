@@ -34,8 +34,8 @@ test("server-renders the public telemetry dashboard", async () => {
   assert.match(html, /FFXI Telemetry — Autonomy, measured/);
   assert.match(html, /Autonomy,/);
   assert.match(html, /measured\./);
-  assert.match(html, /1,245/);
-  assert.match(html, /47,094/);
+  assert.match(html, /1,793/);
+  assert.match(html, /66,847/);
   assert.match(html, /EXP and gil, normalized by active time/);
   assert.match(html, /Current (?:<!-- -->)?hour(?:<!-- -->)? EXP\/hour/);
   assert.match(
@@ -68,6 +68,10 @@ test("source contains only the finished dashboard experience", async () => {
   assert.match(layout, /generateMetadata/);
   assert.match(layout, /\/og-v2\.png/);
   assert.match(page, /const qualityRows/);
+  assert.match(page, /isSafeDashboardSnapshot/);
+  assert.match(page, /PUBLIC_TELEMETRY_SNAPSHOT_URL/);
+  assert.doesNotMatch(page, /value="1,245"/);
+  assert.doesNotMatch(page, /value="47,094"/);
   assert.match(page, /ProgressionRatePanel/);
   assert.match(page, /Hourly refresh/);
   assert.match(page, /initialProgressionSnapshot/);
